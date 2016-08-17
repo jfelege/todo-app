@@ -1,0 +1,28 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure(2) do |config|
+
+  config.vm.define "todo-app" do |node|
+    node.vm.box = "bento/centos-7.2"
+
+    node.vm.network :private_network, type: "dhcp"
+
+    node.vm.network "forwarded_port", guest: 8080, host: 8080
+
+    node.vm.provider :virtualbox do | vbox |
+      vbox.gui = false
+      vbox.customize ['modifyvm', :id, '--memory', 2048]
+
+      # http://jeremykendall.net/2014/10/06/forcing-an-ntp-update/
+      # VB VM will poll time from host machine every 10s
+      vbox.customize ["guestproperty", "set", :id, "/VirtualBox/GuestAdd/VBoxService/--timesync-set-threshold", 10000]
+    end
+
+    node.vm.provision "shell", path: "provisioning/install.sh"
+    node.vm.provision "shell", path: "provisioning/start-up.sh"
+
+    node.vm.synced_folder "./", "/vagrant"
+    node.vm.synced_folder "../todo-app", "/host_todo-app", create: true, mount_options: ["dmode=775,fmode=755"]
+  end
+end
