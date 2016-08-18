@@ -71,8 +71,6 @@ public class WebAppConfig extends WebSecurityConfigurerAdapter {
 				.antMatchers(HttpMethod.DELETE, "/api/**").authenticated()
 				.antMatchers(HttpMethod.GET, "/api/**").authenticated()
 				.and()
-				.httpBasic()
-				.and()
 				.sessionManagement()
 				.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 				.and()
