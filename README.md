@@ -18,4 +18,4 @@ The following software packages are required:
 4. point browser to [http://localhost:8080/api/auth/token?username=jdoe&password=password/](http://localhost:8080/api/auth/token?username=jdoe&password=password) to fetch a `ROLE_USER` jwt token.
 5. point browser to [http://localhost:8080/api/auth/token?username=jfelege&password=password/](http://localhost:8080/api/auth/token?username=jfelege&password=password) to fetch a `ROLE_USER`, `ROLE_ADMIN` jwt token.
 6. point browser to [http://localhost:8080/api/hello/?token=**TOKEN**](http://localhost:8080/api/hello/?token=**TOKEN**) to access normal user end point.
-7. point browser to [http://localhost:8080/api/admin/?token=**TOKEN**](http://localhost:8080/api/admin/?token=**TOKEN**) to access normal admin end point.
+7. point browser to [http://localhost:8080/api/hello/admin/?token=**TOKEN**](http://localhost:8080/api/hello/admin/?token=**TOKEN**) to access normal admin end point.
