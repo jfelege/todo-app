@@ -1,6 +1,5 @@
 package com.jasonfelege.todo.controller;
 
-import java.util.Collections;
 import java.util.HashMap;
 
 import javax.servlet.http.HttpServletRequest;
@@ -12,7 +11,6 @@ import org.springframework.security.authentication.AuthenticationServiceExceptio
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -20,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.auth0.jwt.JWTSigner;
+import com.jasonfelege.todo.controller.domain.AuthToken;
 import com.jasonfelege.todo.security.SecurityContextProvider;
 import com.jasonfelege.todo.security.userdetails.CustomUserDetails;
 import com.jasonfelege.todo.security.userdetails.CustomUserDetailsService;
@@ -59,7 +58,7 @@ public class AuthenticationController {
 	}
 	
 	@RequestMapping("/token")
-	public String authenticate(String username, String password, HttpServletRequest request) {
+	public AuthToken authenticate(String username, String password, HttpServletRequest request) {
 		
 		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(username, password);
 		WebAuthenticationDetails details = webAuthenticationDetailsSource.buildDetails(request);
@@ -82,6 +81,9 @@ public class AuthenticationController {
 		
 		CustomUserDetails userDetails = (CustomUserDetails)userDetailsService.loadUserByUsername(username);
 
-		return createToken(userDetails.getName(), String.valueOf(userDetails.getId()));
+		String jwt = createToken(userDetails.getName(), String.valueOf(userDetails.getId()));
+		
+		AuthToken token = new AuthToken(jwt);
+		return token;
 	}
 }
