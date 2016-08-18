@@ -1,6 +1,8 @@
 package com.jasonfelege.todo;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.mindrot.jbcrypt.BCrypt;
@@ -9,6 +11,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
+import com.jasonfelege.todo.data.ChecklistRepository;
+import com.jasonfelege.todo.data.domain.Checklist;
+import com.jasonfelege.todo.data.domain.Item;
 import com.jasonfelege.todo.security.data.Role;
 import com.jasonfelege.todo.security.data.RoleRepository;
 import com.jasonfelege.todo.security.data.User;
@@ -22,7 +27,7 @@ public class Application {
 	}
 
 	@Bean
-	public CommandLineRunner loadUserData(UserRepository userRepo, RoleRepository roleRepo) {
+	public CommandLineRunner loadUserData(UserRepository userRepo, RoleRepository roleRepo, ChecklistRepository checklistRepo) {
 		return (args) -> {
 			String hashed = BCrypt.hashpw("password", BCrypt.gensalt(12));
 
@@ -64,6 +69,26 @@ public class Application {
 			user3.setEnabled(true);
 			user3.setRoles(userRoles);
 			userRepo.save(user3);
+			
+			
+			List<Item> items = new ArrayList<Item>();
+			Item item1 = new Item();
+			item1.setName("active item");
+			item1.setComplete(false);
+			
+			Item item2 = new Item();
+			item2.setName("completed item");
+			item2.setComplete(true);
+			
+			items.add(item1);
+			items.add(item2);
+			
+			Checklist list1 = new Checklist();
+			list1.setOwner(user1);
+			list1.setName("My Todo List");
+			list1.setItems(items);
+			list1 = checklistRepo.save(list1);
+			
 		};
 	}
 }
