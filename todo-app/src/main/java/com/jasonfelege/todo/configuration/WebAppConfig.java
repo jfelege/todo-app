@@ -3,11 +3,11 @@ package com.jasonfelege.todo.configuration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -66,15 +66,11 @@ public class WebAppConfig extends WebSecurityConfigurerAdapter {
 		.authenticationProvider(getCustomAuthenticationProvider())
 		.authorizeRequests()
 			.antMatchers("/api/auth/token").permitAll()
-				.antMatchers(HttpMethod.POST, "/api/**").authenticated()
-				.antMatchers(HttpMethod.PUT, "/api/**").authenticated()
-				.antMatchers(HttpMethod.DELETE, "/api/**").authenticated()
-				.antMatchers(HttpMethod.GET, "/api/**").authenticated()
-				.and()
-				.sessionManagement()
-				.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-				.and()
-				.addFilterBefore(getAuthenticationTokenProcessingFilter(),
+			.and()
+			.sessionManagement()
+			.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+			.and()
+			.addFilterBefore(getAuthenticationTokenProcessingFilter(),
 						UsernamePasswordAuthenticationFilter.class);
 
 	}
