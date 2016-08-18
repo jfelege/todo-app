@@ -84,18 +84,16 @@ public class Application {
 			item1.setName("active item");
 			item1.setComplete(false);
 			Item item1b = itemRepo.save(item1);
-			LOG.info("item_id={} item_name={} item_complete={}", item1.getId(), item1.getName(), item1.isComplete());
+			LOG.info("item_id={} item_name={} item_complete={}", item1b.getId(), item1b.getName(), item1b.isComplete());
 			
 			Item item2 = new Item();
 			item2.setName("completed item");
 			item2.setComplete(true);
 			Item item2b = itemRepo.save(item2);
-			LOG.info("item_id={} item_name={} item_complete={}", item2.getId(), item2.getName(), item2.isComplete());
+			LOG.info("item_id={} item_name={} item_complete={}", item2b.getId(), item2b.getName(), item2b.isComplete());
 			
 			items.add(item1);
 			items.add(item2);
-			
-			//itemRepo.save(items);
 			
 			Checklist list1 = new Checklist();
 			list1.setOwner(user1);
