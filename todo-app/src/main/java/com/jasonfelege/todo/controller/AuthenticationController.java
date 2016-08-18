@@ -61,7 +61,7 @@ public class AuthenticationController {
 	@RequestMapping("/token")
 	public String authenticate(String username, String password, HttpServletRequest request) {
 		
-		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(username, password, Collections.<GrantedAuthority>emptySet());
+		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(username, password);
 		WebAuthenticationDetails details = webAuthenticationDetailsSource.buildDetails(request);
 		authentication.setDetails(details);
 		
