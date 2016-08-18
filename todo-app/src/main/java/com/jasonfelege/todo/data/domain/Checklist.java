@@ -1,20 +1,25 @@
 package com.jasonfelege.todo.data.domain;
 
+import java.io.Serializable;
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.validation.constraints.NotNull;
 
 import com.jasonfelege.todo.security.data.User;
 
 @Entity
-public class Checklist {
+public class Checklist implements Serializable {
+
+	private static final long serialVersionUID = 1L;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -22,18 +27,15 @@ public class Checklist {
 	
 	@NotNull
 	private String name;
+
 	
-	@NotNull
-	private List<Item> items;
-
-
-	@OneToOne(fetch = FetchType.LAZY)
+	@OneToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name="user_id", referencedColumnName="id", nullable=false)
 	private User owner;
 	
-	//@NotNull
-	//@JoinColumn(name="user_id", referencedColumnName="id")
-	//private List<User> collaborators;
+	@OneToMany(cascade=CascadeType.ALL, fetch = FetchType.EAGER)
+	@JoinColumn(name="item_id")
+	private List<Item> items;
 
 	public long getId() {
 		return id;
@@ -58,6 +60,7 @@ public class Checklist {
 	public void setItems(List<Item> items) {
 		this.items = items;
 	}
+
 
 	public User getOwner() {
 		return owner;

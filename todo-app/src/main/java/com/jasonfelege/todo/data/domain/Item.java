@@ -1,24 +1,37 @@
 package com.jasonfelege.todo.data.domain;
 
+import java.io.Serializable;
+
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
+import javax.persistence.ManyToOne;
 import javax.validation.constraints.NotNull;
 
 @Entity
-public class Item {
+public class Item implements Serializable {
+
+	private static final long serialVersionUID = 1L;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;
 	
-	@OneToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name="checklist_id", nullable=true)
-	private Checklist list;
+	@ManyToOne
+	private Checklist checklist;
+	
+	public Checklist getChecklist() {
+		return checklist;
+	}
+	
+	public void setChecklist(Checklist checklist) {
+		this.checklist = checklist;
+	}
+	
+
+	
 	
 	@NotNull
 	private String name;
