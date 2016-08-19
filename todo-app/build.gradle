@@ -41,6 +41,9 @@ dependencies {
 	runtime("org.hsqldb:hsqldb:2.3.4")
 	
     testCompile('org.springframework.boot:spring-boot-starter-test')
+    testCompile('com.jayway.jsonpath:json-path')
+    testCompile('javax.inject:javax.inject')
+    
 }
 
 task wrapper(type: Wrapper) {
