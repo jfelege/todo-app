@@ -9,9 +9,11 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -25,6 +27,7 @@ import com.auth0.jwt.internal.org.apache.commons.lang3.StringUtils;
 import com.jasonfelege.todo.security.credentials.JsonWebToken;
 import com.jasonfelege.todo.security.userdetails.CustomUserDetails;
 import com.jasonfelege.todo.security.userdetails.CustomUserDetailsService;
+import com.jasonfelege.todo.service.AuthenticationService;
 import com.jasonfelege.todo.service.JsonWebTokenService;
 import com.jasonfelege.todo.service.JwtTokenValidationException;
 
@@ -35,6 +38,9 @@ public class AuthenticationTokenProcessingFilter extends GenericFilterBean {
 	private AuthenticationManager authManager;
 	private CustomUserDetailsService userDetailsService;
 	private JsonWebTokenService jwtService;
+	
+	@Autowired
+	private AuthenticationService authHelper;
 	
 	private final SecurityContextProvider securityContextProvider;
 	private final WebAuthenticationDetailsSource webAuthenticationDetailsSource = new WebAuthenticationDetailsSource();
@@ -76,14 +82,17 @@ public class AuthenticationTokenProcessingFilter extends GenericFilterBean {
 
 					final JsonWebToken claim = new JsonWebToken(userDetails.getName(), userDetails.getId(), token);
 					
-					authenticateUser((HttpServletRequest) request, 
+					//authenticateUser((HttpServletRequest) request,
+					authHelper.authenticateUser((HttpServletRequest) request,
 							userDetails.getName(), 
 							claim,
 							userDetails.getAuthorities());
 
 					LOG.error("action=token_auth status=token_provisioned username={} token={}", userDetails.getName(), token);
 				} catch (JwtTokenValidationException e) {
+					((HttpServletResponse)response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 					LOG.error("action=token_auth status=token_parse_exception error_message={}", e.getMessage());
+					return;
 				}
 				
 			}
@@ -108,7 +117,8 @@ public class AuthenticationTokenProcessingFilter extends GenericFilterBean {
 		System.out.println("--- ---" + (authManager == null) + " " + authentication.getCredentials() + " "
 				+ authentication.toString() + " " + details.toString());
 		Authentication auth = authManager.authenticate(authentication);
-		System.out.println("--- authManager --- " + auth);
 		sc.setAuthentication(auth);
+		System.out.println("--- authManager --- " + auth);
+		
 	}
 }

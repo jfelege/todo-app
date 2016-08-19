@@ -7,7 +7,6 @@ import java.util.Set;
 
 import javax.transaction.Transactional;
 
-import org.hibernate.Hibernate;
 import org.mindrot.jbcrypt.BCrypt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +14,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import com.jasonfelege.todo.data.ChecklistRepository;
 import com.jasonfelege.todo.data.ItemRepository;
@@ -24,8 +24,11 @@ import com.jasonfelege.todo.security.data.Role;
 import com.jasonfelege.todo.security.data.RoleRepository;
 import com.jasonfelege.todo.security.data.User;
 import com.jasonfelege.todo.security.data.UserRepository;
+import com.jasonfelege.todo.service.ChecklistService;
+import com.jasonfelege.todo.service.ItemService;
 
 @SpringBootApplication
+@EnableTransactionManagement
 public class Application {
 	private static final Logger LOG = LoggerFactory.getLogger(Application.class);
 	
@@ -35,7 +38,9 @@ public class Application {
 
 	@Bean
 	@Transactional
-	public CommandLineRunner loadUserData(UserRepository userRepo, RoleRepository roleRepo, ChecklistRepository checklistRepo, ItemRepository itemRepo) {
+	public CommandLineRunner loadUserData(UserRepository userRepo, RoleRepository roleRepo, ChecklistRepository checklistRepo, ItemRepository itemRepo,
+			ChecklistService checklistService, ItemService itemService) {
+
 		return (args) -> {
 			String hashed = BCrypt.hashpw("password", BCrypt.gensalt(12));
 
@@ -79,41 +84,54 @@ public class Application {
 			userRepo.save(user3);
 			
 			
-			List<Item> items = new ArrayList<Item>();
+			/*
 			Item item1 = new Item();
 			item1.setName("active item");
 			item1.setComplete(false);
-			Item item1b = itemRepo.save(item1);
+			Item item1b = itemService.save(item1);
 			LOG.info("item_id={} item_name={} item_complete={}", item1b.getId(), item1b.getName(), item1b.isComplete());
 			
 			Item item2 = new Item();
 			item2.setName("completed item");
 			item2.setComplete(true);
-			Item item2b = itemRepo.save(item2);
+			Item item2b = itemService.save(item2);
 			LOG.info("item_id={} item_name={} item_complete={}", item2b.getId(), item2b.getName(), item2b.isComplete());
 			
-			items.add(item1);
-			items.add(item2);
+			List<Item> items = new ArrayList<Item>();
+			items.add(item1b);
+			items.add(item2b);
 			
+		
 			Checklist list1 = new Checklist();
 			list1.setOwner(user1);
 			list1.setName("My Todo List");
-			Checklist list1b = checklistRepo.save(list1);
+			//list1.setItems(items);
 			
-			item1.setChecklist(list1);
-			itemRepo.save(item1);
+			Checklist newList = checklistService.save(list1);
+			newList.setItems(items);
+			checklistService.save(newList);
+						
+			List<Checklist> lists = checklistService.findByOwnerId(1);
 			
-			item2.setChecklist(list1);
-			itemRepo.save(item2);
+			lists.forEach(list -> { 
+				LOG.info("* {} {} {} {}", list.getId(), list.getName(), list.getOwner().getName(), list.getItems().size());
+				
+				list.getItems().forEach(item -> { 
+					LOG.info("* {} {} {} {}", item.getId(), item.getName(), item.getVersion(), item.getChecklist().getName());
+				});
+				
+			});*/
 			
 			
-			list1b = checklistRepo.findOne(1L);
-			Hibernate.initialize(list1b.getItems());
+			//list1b = checklistRepo.findOne(1L);
+			//Hibernate.initialize(list1b.getItems());
 			
-			list1b.setItems(items);
-			checklistRepo.save(list1b);
+			//list1b.setItems(items);
+			//checklistRepo.save(list1b);
 			
-			LOG.info("checklist_id={} checklist_name={} checklist_size={} owner={}", list1b.getId(), list1b.getName(), (list1b.getItems() == null ? "null" : list1b.getItems().size()), list1b.getOwner());
+			//LOG.info("checklist_id={} checklist_name={} checklist_size={} owner={}", list1b.getId(), list1b.getName(), (list1b.getItems() == null ? "null" : list1b.getItems().size()), list1b.getOwner());
+			
+			
 		};
 	}
 }

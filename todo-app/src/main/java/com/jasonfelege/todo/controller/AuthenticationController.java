@@ -20,6 +20,7 @@ import com.jasonfelege.todo.security.SecurityContextProvider;
 import com.jasonfelege.todo.security.credentials.UserPassword;
 import com.jasonfelege.todo.security.userdetails.CustomUserDetails;
 import com.jasonfelege.todo.security.userdetails.CustomUserDetailsService;
+import com.jasonfelege.todo.service.AuthenticationService;
 import com.jasonfelege.todo.service.JsonWebTokenService;
 
 @RestController
@@ -33,12 +34,14 @@ public class AuthenticationController {
     private final SecurityContextProvider securityContextProvider;
     private final WebAuthenticationDetailsSource webAuthenticationDetailsSource = new WebAuthenticationDetailsSource();
     private final JsonWebTokenService jwtService;
+    private final AuthenticationService authHelper;
 	
-    public AuthenticationController(AuthenticationManager authManager, CustomUserDetailsService userDetailsService, SecurityContextProvider securityContextProvider, JsonWebTokenService jwtService) {
+    public AuthenticationController(AuthenticationService authHelper, AuthenticationManager authManager, CustomUserDetailsService userDetailsService, SecurityContextProvider securityContextProvider, JsonWebTokenService jwtService) {
         this.securityContextProvider = securityContextProvider;
         this.userDetailsService = userDetailsService;
         this.authManager = authManager;
         this.jwtService = jwtService;
+        this.authHelper = authHelper;
     }
 	
 	@RequestMapping("/token")
@@ -46,7 +49,7 @@ public class AuthenticationController {
 		LOG.info("action=token_authentication username={} password={}", username, "[REDACTED]");
 		UserPassword userPassword = new UserPassword(password);
 		
-		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(username, userPassword);
+		/*UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(username, userPassword);
 		WebAuthenticationDetails details = webAuthenticationDetailsSource.buildDetails(request);
 		authentication.setDetails(details);
 		
@@ -65,9 +68,13 @@ public class AuthenticationController {
 		sc.setAuthentication(auth);
 		
 		LOG.info("--- authManager --- " + auth);
+		*/
 		
 		final CustomUserDetails userDetails = (CustomUserDetails)userDetailsService.loadUserByUsername(username);
 
+		//TODO this throws exception?
+		authHelper.authenticateUser(request, username, userPassword, userDetails.getAuthorities());
+		
 		final String jwt = jwtService.generateToken(userDetails.getName(), String.valueOf(userDetails.getId()));
 
 		return new AuthToken(jwt);
