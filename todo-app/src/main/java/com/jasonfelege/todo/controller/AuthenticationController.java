@@ -1,7 +1,5 @@
 package com.jasonfelege.todo.controller;
 
-import java.util.HashMap;
-
 import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
@@ -17,11 +15,12 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.auth0.jwt.JWTSigner;
 import com.jasonfelege.todo.controller.domain.AuthToken;
 import com.jasonfelege.todo.security.SecurityContextProvider;
+import com.jasonfelege.todo.security.credentials.UserPassword;
 import com.jasonfelege.todo.security.userdetails.CustomUserDetails;
 import com.jasonfelege.todo.security.userdetails.CustomUserDetailsService;
+import com.jasonfelege.todo.service.JsonWebTokenService;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -29,38 +28,25 @@ public class AuthenticationController {
 
 	private static final Logger LOG = LoggerFactory.getLogger(AuthenticationController.class);
 	
-    private AuthenticationManager authManager;
-	private CustomUserDetailsService userDetailsService;
+    private final AuthenticationManager authManager;
+	private final CustomUserDetailsService userDetailsService;
     private final SecurityContextProvider securityContextProvider;
     private final WebAuthenticationDetailsSource webAuthenticationDetailsSource = new WebAuthenticationDetailsSource();
-    
+    private final JsonWebTokenService jwtService;
 	
-    public AuthenticationController(AuthenticationManager authManager, CustomUserDetailsService userDetailsService, SecurityContextProvider securityContextProvider) {
+    public AuthenticationController(AuthenticationManager authManager, CustomUserDetailsService userDetailsService, SecurityContextProvider securityContextProvider, JsonWebTokenService jwtService) {
         this.securityContextProvider = securityContextProvider;
         this.userDetailsService = userDetailsService;
         this.authManager = authManager;
+        this.jwtService = jwtService;
     }
-
-	
-	public String createToken(String userName, String userId) {
-		final long iat = System.currentTimeMillis() / 1000l;
-		final long exp = iat + 3600L;
-		
-		final JWTSigner signer = new JWTSigner("secret");
-		final HashMap<String, Object>  claims = new HashMap<String, Object>();
-		claims.put("iss", "http://localhost");
-		claims.put("exp", exp);
-		claims.put("iat", iat);
-		claims.put("username", userName);
-		claims.put("userId", userId);
-		
-		return signer.sign(claims);
-	}
 	
 	@RequestMapping("/token")
 	public AuthToken authenticate(String username, String password, HttpServletRequest request) {
+		LOG.info("action=token_authentication username={} password={}", username, "[REDACTED]");
+		UserPassword userPassword = new UserPassword(password);
 		
-		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(username, password);
+		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(username, userPassword);
 		WebAuthenticationDetails details = webAuthenticationDetailsSource.buildDetails(request);
 		authentication.setDetails(details);
 		
@@ -76,14 +62,14 @@ public class AuthenticationController {
 			throw new AuthenticationServiceException("invalid username and/or password", e);
 		}
 		
-		LOG.info("--- authManager --- " + auth);
 		sc.setAuthentication(auth);
 		
-		CustomUserDetails userDetails = (CustomUserDetails)userDetailsService.loadUserByUsername(username);
-
-		String jwt = createToken(userDetails.getName(), String.valueOf(userDetails.getId()));
+		LOG.info("--- authManager --- " + auth);
 		
-		AuthToken token = new AuthToken(jwt);
-		return token;
+		final CustomUserDetails userDetails = (CustomUserDetails)userDetailsService.loadUserByUsername(username);
+
+		final String jwt = jwtService.generateToken(userDetails.getName(), String.valueOf(userDetails.getId()));
+
+		return new AuthToken(jwt);
 	}
 }

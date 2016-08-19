@@ -1,9 +1,6 @@
 package com.jasonfelege.todo.security;
 
 import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SignatureException;
 import java.util.Collection;
 import java.util.Map;
 
@@ -12,7 +9,6 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,81 +21,83 @@ import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.GenericFilterBean;
 
-import com.auth0.jwt.JWTVerifier;
-import com.auth0.jwt.JWTVerifyException;
 import com.auth0.jwt.internal.org.apache.commons.lang3.StringUtils;
+import com.jasonfelege.todo.security.credentials.JsonWebToken;
 import com.jasonfelege.todo.security.userdetails.CustomUserDetails;
 import com.jasonfelege.todo.security.userdetails.CustomUserDetailsService;
+import com.jasonfelege.todo.service.JsonWebTokenService;
+import com.jasonfelege.todo.service.JwtTokenValidationException;
 
 public class AuthenticationTokenProcessingFilter extends GenericFilterBean {
 	private static final Logger LOG = LoggerFactory.getLogger(AuthenticationTokenProcessingFilter.class);
-
+	private static final String JWT_CLAIM_USERNAME = JsonWebTokenService.ClaimTypes.userName.name();
+	
 	private AuthenticationManager authManager;
 	private CustomUserDetailsService userDetailsService;
+	private JsonWebTokenService jwtService;
+	
 	private final SecurityContextProvider securityContextProvider;
 	private final WebAuthenticationDetailsSource webAuthenticationDetailsSource = new WebAuthenticationDetailsSource();
 
-	public AuthenticationTokenProcessingFilter(AuthenticationManager authManager,
-			CustomUserDetailsService userDetailsService, SecurityContextProvider securityContextProvider) {
+	public AuthenticationTokenProcessingFilter(
+			JsonWebTokenService jwtService,
+			AuthenticationManager authManager,
+			CustomUserDetailsService userDetailsService,
+			SecurityContextProvider securityContextProvider) {
+		this.jwtService = jwtService;
+		this.authManager = authManager;
 		this.userDetailsService = userDetailsService;
 		this.securityContextProvider = securityContextProvider;
-		this.authManager = authManager;
+		
 	}
 
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
 			throws IOException, ServletException {
 		
-		String token = null;
-
 		if (request instanceof HttpServletRequest) {
+			
 			HttpServletRequest httpRequest = ((HttpServletRequest) request);
-
-			token = httpRequest.getHeader("Authorization");
-
-			if (StringUtils.isEmpty(token)) {
-				((HttpServletResponse) response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-				return;
-			}
 			
-			if (!token.toLowerCase().startsWith("bearer ")) {
-				((HttpServletResponse) response).setStatus(HttpServletResponse.SC_BAD_REQUEST);
-				return;
+			LOG.debug("action=doFilter uri={}", httpRequest.getRequestURI());
+
+			final String authHeader = httpRequest.getHeader("Authorization");
+
+			if (!StringUtils.isEmpty(authHeader) && authHeader.toLowerCase().startsWith("bearer ")) {
+				// strip leading string "bearer " from token
+				final String token = authHeader.substring(7);
+
+				try {
+					final Map<String, Object> claims = jwtService.verifyToken(token);
+					
+					final String username = (String) claims.get(JWT_CLAIM_USERNAME);
+					
+					final CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(username);
+
+					final JsonWebToken claim = new JsonWebToken(userDetails.getName(), userDetails.getId(), token);
+					
+					authenticateUser((HttpServletRequest) request, 
+							userDetails.getName(), 
+							claim,
+							userDetails.getAuthorities());
+
+					LOG.error("action=token_auth status=token_provisioned username={} token={}", userDetails.getName(), token);
+				} catch (JwtTokenValidationException e) {
+					LOG.error("action=token_auth status=token_parse_exception error_message={}", e.getMessage());
+				}
+				
 			}
-			
 		}
-
-		// strip leading string "bearer " from token
-		token = token.substring(7);
-
-		final String secret = "secret";
-
-		// TODO create JWT service and abstract it out of here
-		final JWTVerifier verifier = new JWTVerifier(secret);
-
-		try {
-			// jwt is valid, process the login request.
-
-			final Map<String, Object> claims = verifier.verify(token);
-			final String username = (String) claims.get("username");
-
-			final CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(username);
-
-			authenticateUser((HttpServletRequest) request, userDetails.getName(), userDetails.getPassword(),
-					userDetails.getAuthorities());
-
-			LOG.error("action=token_auth status=token_provisioned username={} token={}", userDetails.getName(), token);
-		} catch (InvalidKeyException | NoSuchAlgorithmException | IllegalStateException | SignatureException
-				| JWTVerifyException e) {
-			LOG.error("action=token_auth status=token_parse_exception error_message={}", e.getMessage());
+		else {
+			LOG.warn("action=doFilter status=unknown_servlet_request");
 		}
-
+		
 		chain.doFilter(request, response);
 	}
 
-	private void authenticateUser(HttpServletRequest request, String username, String password,
+	private void authenticateUser(HttpServletRequest request, String username, JsonWebToken claims,
 			Collection<? extends GrantedAuthority> authorities) {
-		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(username, password,
+		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(username, claims,
 				authorities);
 
 		WebAuthenticationDetails details = webAuthenticationDetailsSource.buildDetails(request);

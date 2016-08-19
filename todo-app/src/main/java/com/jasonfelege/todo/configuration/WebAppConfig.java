@@ -1,13 +1,13 @@
 package com.jasonfelege.todo.configuration;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -21,6 +21,8 @@ import com.jasonfelege.todo.security.CustomAuthenticationProvider;
 import com.jasonfelege.todo.security.SecurityContextProvider;
 import com.jasonfelege.todo.security.data.UserRepository;
 import com.jasonfelege.todo.security.userdetails.CustomUserDetailsService;
+import com.jasonfelege.todo.service.JsonWebTokenService;
+import com.jasonfelege.todo.service.JsonWebTokenServiceImpl;
 
 @Configuration
 @EnableWebSecurity
@@ -32,6 +34,20 @@ public class WebAppConfig extends WebSecurityConfigurerAdapter {
 	
 	@Autowired
 	private AuthenticationManager authManager;
+	
+	@Value("${jwt.secret}")
+	private String jwtTokenSecret;
+	
+	@Value("${app.domain}")
+	private String appDomain;
+	
+	@Value("${jwt.expiration:300}")
+	private long jwtExpiration;
+	
+	@Bean
+	public JsonWebTokenService getJsonWebTokenService(){
+		return new JsonWebTokenServiceImpl(jwtTokenSecret, appDomain, jwtExpiration);
+	}
 	
 	@Bean
 	public UserDetailsService userDetailsService() {
@@ -50,7 +66,11 @@ public class WebAppConfig extends WebSecurityConfigurerAdapter {
 	
 	@Bean
 	public AuthenticationTokenProcessingFilter getAuthenticationTokenProcessingFilter() {
-		return new AuthenticationTokenProcessingFilter(authManager, getCustomUserDetailsService(), securityContextProvider());
+		return new AuthenticationTokenProcessingFilter(
+				getJsonWebTokenService(), 
+				authManager, 
+				getCustomUserDetailsService(), 
+				securityContextProvider());
 	}
 
 	@Autowired
@@ -74,7 +94,7 @@ public class WebAppConfig extends WebSecurityConfigurerAdapter {
 						UsernamePasswordAuthenticationFilter.class);
 
 	}
-
+	
 	@Bean
 	public SecurityContextProvider securityContextProvider() {
 		return new SecurityContextProvider();
