@@ -33,7 +33,7 @@ import com.jasonfelege.todo.service.JsonWebTokenService;
 @SpringBootTest(classes = TestApplicationConfiguration.class)
 @WebAppConfiguration
 @ActiveProfiles("int-test")
-public class HelloControllerTest {
+public class IntegrationTest {
 
 	@Rule
 	public JUnitRestDocumentation restDocumentation = new JUnitRestDocumentation("build/generated-snippets");
