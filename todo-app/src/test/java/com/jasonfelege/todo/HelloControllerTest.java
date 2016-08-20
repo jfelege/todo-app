@@ -16,7 +16,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -79,7 +78,7 @@ public class HelloControllerTest {
 				post("/api/auth/token")
 					.param("username", "activeuser").param("password",  "invalidpassword")
 					.accept(MediaType.APPLICATION_JSON))
-			.andExpect(status().is(HttpStatus.BAD_REQUEST.value()));
+			.andExpect(status().is(HttpStatus.UNAUTHORIZED.value()));
 	}
 	
 	@Test
@@ -88,13 +87,13 @@ public class HelloControllerTest {
 				post("/api/auth/token")
 					.param("username", "nonexisting").param("password",  "password")
 					.accept(MediaType.APPLICATION_JSON))
-			.andExpect(status().is(HttpStatus.BAD_REQUEST.value()));
+			.andExpect(status().is(HttpStatus.UNAUTHORIZED.value()));
 	}
 	
 	@Test
 	public void testChecklistsWithMissingAuthToken() throws Exception {
 		this.mockMvc.perform(get("/api/checklists").accept(MediaType.APPLICATION_JSON)) 
-		.andExpect(status().is(HttpStatus.BAD_REQUEST.value()))
+		.andExpect(status().is(HttpStatus.UNAUTHORIZED.value()))
 		.andDo(document("checklist-invalid-token"));
 	}
 	

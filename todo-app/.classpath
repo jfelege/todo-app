@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="src/main/java">
+	<classpathentry excluding="com/jasonfelege/todo/security/AuthenticationTokenProcessingFilter.java|com/jasonfelege/todo/security/CustomAuthenticationEntryPoint.java|com/jasonfelege/todo/security/CustomAuthenticationProvider.java|com/jasonfelege/todo/security/SecurityContextProvider.java" kind="src" path="src/main/java">
 		<attributes>
 			<attribute name="FROM_GRADLE_MODEL" value="true"/>
 		</attributes>

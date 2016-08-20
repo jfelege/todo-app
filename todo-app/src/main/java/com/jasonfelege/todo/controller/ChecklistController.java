@@ -13,9 +13,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.jasonfelege.todo.controller.domain.ChecklistDTO;
-import com.jasonfelege.todo.controller.domain.ItemDTO;
-import com.jasonfelege.todo.controller.domain.OwnerDTO;
 import com.jasonfelege.todo.data.domain.Checklist;
 import com.jasonfelege.todo.data.domain.Item;
 import com.jasonfelege.todo.security.data.User;
@@ -88,40 +85,7 @@ public class ChecklistController {
 	
 	@Secured("ROLE_USER")
 	@RequestMapping(path = "/", method = RequestMethod.GET)
-	public List<ChecklistDTO> getChecklists(@RequestHeader(value="Authorization") String authToken) throws JwtTokenValidationException, JsonProcessingException {
-	    
-		Map<String, Object> claims = jwtService.verifyToken(authToken.substring(7));
-
-		String userName = (String)claims.get(JsonWebTokenService.ClaimTypes.userName.name());
-	    long userId = Long.parseLong((String)claims.get(JsonWebTokenService.ClaimTypes.userId.name()));
-	    
-		LOG.info("action=helloWorld username={} userid={} token={}", userName, userId, authToken);
-		
-		List<Checklist> lists = listService.findByOwnerId(userId);
-		
-		List<ChecklistDTO> dtoLists = new ArrayList<ChecklistDTO>();
-		
-		OwnerDTO owner = new OwnerDTO(userId, userName);
-		
-		
-		lists.forEach(list -> {
-			List<ItemDTO> dtoItems = new ArrayList<ItemDTO>();
-	
-			list.getItems().forEach(item -> { 
-
-				ItemDTO itemDto = new ItemDTO(item.getId(), item.getName(), item.isComplete());
-				dtoItems.add(itemDto);
-			});
-			
-			ChecklistDTO dto = new ChecklistDTO(list.getId(), list.getName(), owner, dtoItems);
-
-			dtoLists.add(dto);
-			
-
-		});
-		
-		
-		
-		return dtoLists;
+	public String getChecklists(@RequestHeader(value="Authorization") String authToken) throws JwtTokenValidationException, JsonProcessingException {
+		return "hi";
 	}
 }

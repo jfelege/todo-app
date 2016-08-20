@@ -9,8 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -41,7 +40,7 @@ public class GlobalControllerAdvice {
 		this.disableStackTrace = hideStackTrace;
 	}
 
-	@ExceptionHandler(AuthenticationCredentialsNotFoundException.class)
+	@ExceptionHandler(AuthenticationException.class)
 	@ResponseBody
 	public ResponseEntity<?> handleUserNotFoundException(HttpServletRequest req, Exception e) {
 		LOGGER.error(e.getMessage(), e);
@@ -50,7 +49,7 @@ public class GlobalControllerAdvice {
 			e = (Exception) new NonExposingException("invalid user credentials");
 		}
 
-		return new ResponseEntity<>(e, HttpStatus.FORBIDDEN);
+		return new ResponseEntity<>(e, HttpStatus.UNAUTHORIZED);
 	}
 
 	@ExceptionHandler(JwtTokenValidationException.class)
