@@ -14,10 +14,10 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import com.jasonfelege.todo.data.ChecklistRepository;
 import com.jasonfelege.todo.data.ItemRepository;
-import com.jasonfelege.todo.security.data.Role;
-import com.jasonfelege.todo.security.data.RoleRepository;
-import com.jasonfelege.todo.security.data.User;
-import com.jasonfelege.todo.security.data.UserRepository;
+import com.jasonfelege.todo.data.RoleRepository;
+import com.jasonfelege.todo.data.UserRepository;
+import com.jasonfelege.todo.data.domain.Role;
+import com.jasonfelege.todo.data.domain.User;
 import com.jasonfelege.todo.service.ChecklistService;
 import com.jasonfelege.todo.service.ItemService;
 

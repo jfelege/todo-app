@@ -2,6 +2,8 @@ package com.jasonfelege.todo.service;
 
 import java.util.Map;
 
+import com.jasonfelege.todo.exceptions.JwtTokenValidationException;
+
 public interface JsonWebTokenService {
 
 	public enum ClaimTypes {

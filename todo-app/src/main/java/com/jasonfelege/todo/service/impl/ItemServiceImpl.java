@@ -1,4 +1,4 @@
-package com.jasonfelege.todo.service;
+package com.jasonfelege.todo.service.impl;
 
 import java.util.List;
 
@@ -6,6 +6,7 @@ import javax.transaction.Transactional;
 
 import com.jasonfelege.todo.data.ItemRepository;
 import com.jasonfelege.todo.data.domain.Item;
+import com.jasonfelege.todo.service.ItemService;
 
 public class ItemServiceImpl implements ItemService {
 

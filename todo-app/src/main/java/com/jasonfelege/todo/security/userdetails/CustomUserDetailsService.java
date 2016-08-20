@@ -6,8 +6,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
-import com.jasonfelege.todo.security.data.User;
-import com.jasonfelege.todo.security.data.UserRepository;
+import com.jasonfelege.todo.data.UserRepository;
+import com.jasonfelege.todo.data.domain.User;
 
 public class CustomUserDetailsService implements UserDetailsService {
 	private static final Logger LOG = LoggerFactory.getLogger(CustomUserDetailsService.class);

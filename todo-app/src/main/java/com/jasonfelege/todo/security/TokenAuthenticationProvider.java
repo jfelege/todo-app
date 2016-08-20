@@ -11,9 +11,9 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
+import com.jasonfelege.todo.exceptions.JwtTokenValidationException;
 import com.jasonfelege.todo.security.userdetails.CustomUserDetails;
 import com.jasonfelege.todo.service.JsonWebTokenService;
-import com.jasonfelege.todo.service.JwtTokenValidationException;
 
 public class TokenAuthenticationProvider implements AuthenticationProvider {
 	private final static Logger LOG = LoggerFactory.getLogger(TokenAuthenticationProvider.class);

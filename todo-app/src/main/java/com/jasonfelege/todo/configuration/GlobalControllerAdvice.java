@@ -14,27 +14,14 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.jasonfelege.todo.service.JwtTokenValidationException;
+import com.jasonfelege.todo.exceptions.JwtTokenValidationException;
+import com.jasonfelege.todo.exceptions.NonExposingException;
 
 @ControllerAdvice
 public class GlobalControllerAdvice {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GlobalControllerAdvice.class);
-
-	class NonExposingException extends Exception {
-		private static final long serialVersionUID = 1L;
-
-		public NonExposingException(String message) {
-			super(message);
-		}
-
-		@Override
-		public synchronized Throwable fillInStackTrace() {
-			// disable secure details from the stack_trace
-			return this;
-		}
-	}
-
-	private boolean disableStackTrace;
+	
+	private final boolean disableStackTrace;
 	
 	public GlobalControllerAdvice(@Value("${app.disableStackTrace}") Boolean hideStackTrace) {
 		this.disableStackTrace = hideStackTrace;

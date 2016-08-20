@@ -14,7 +14,6 @@ import javax.persistence.OneToOne;
 import javax.persistence.Version;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.jasonfelege.todo.security.data.User;
 
 @Entity
 public class Checklist {

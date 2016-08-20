@@ -23,16 +23,16 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import com.jasonfelege.todo.data.ChecklistRepository;
 import com.jasonfelege.todo.data.ItemRepository;
+import com.jasonfelege.todo.data.UserRepository;
 import com.jasonfelege.todo.security.AuthenticationFilter;
 import com.jasonfelege.todo.security.TokenAuthenticationProvider;
-import com.jasonfelege.todo.security.data.UserRepository;
 import com.jasonfelege.todo.security.userdetails.CustomUserDetailsService;
 import com.jasonfelege.todo.service.ChecklistService;
-import com.jasonfelege.todo.service.ChecklistServiceImpl;
 import com.jasonfelege.todo.service.ItemService;
-import com.jasonfelege.todo.service.ItemServiceImpl;
 import com.jasonfelege.todo.service.JsonWebTokenService;
-import com.jasonfelege.todo.service.JsonWebTokenServiceImpl;
+import com.jasonfelege.todo.service.impl.ChecklistServiceImpl;
+import com.jasonfelege.todo.service.impl.ItemServiceImpl;
+import com.jasonfelege.todo.service.impl.JsonWebTokenServiceImpl;
 
 @Configuration
 @ComponentScan("com.jasonfelege.todo.service")

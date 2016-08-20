@@ -1,4 +1,4 @@
-package com.jasonfelege.todo.service;
+package com.jasonfelege.todo.service.impl;
 
 import java.util.List;
 
@@ -6,6 +6,7 @@ import javax.transaction.Transactional;
 
 import com.jasonfelege.todo.data.ChecklistRepository;
 import com.jasonfelege.todo.data.domain.Checklist;
+import com.jasonfelege.todo.service.ChecklistService;
 
 public class ChecklistServiceImpl implements ChecklistService {
 

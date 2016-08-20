@@ -14,14 +14,16 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.jasonfelege.todo.controller.dto.ChecklistDto;
+import com.jasonfelege.todo.data.UserRepository;
 import com.jasonfelege.todo.data.domain.Checklist;
 import com.jasonfelege.todo.data.domain.Item;
-import com.jasonfelege.todo.security.data.User;
-import com.jasonfelege.todo.security.data.UserRepository;
+import com.jasonfelege.todo.data.domain.User;
+import com.jasonfelege.todo.exceptions.JwtTokenValidationException;
+import com.jasonfelege.todo.security.JsonWebToken;
 import com.jasonfelege.todo.service.ChecklistService;
 import com.jasonfelege.todo.service.ItemService;
 import com.jasonfelege.todo.service.JsonWebTokenService;
-import com.jasonfelege.todo.service.JwtTokenValidationException;
 
 @RestController
 @RequestMapping("/api/checklists")
@@ -86,8 +88,31 @@ public class ChecklistController {
 	
 	@Secured("ROLE_USER")
 	@RequestMapping(method = RequestMethod.GET)
-	public String getChecklists(Authentication auth, @RequestHeader(value="Authorization") String authToken) throws JwtTokenValidationException, JsonProcessingException {
+	public List<Checklist> getChecklists(Authentication auth, @RequestHeader(value="Authorization") String authToken) throws JwtTokenValidationException, JsonProcessingException {
 		LOG.info("action=get_checklists auth={}", auth);
-		return "hi";
+		
+		JsonWebToken token = (JsonWebToken) auth.getPrincipal();
+		
+		return listService.findByOwnerId(token.getUserId());
+		
+		/*List<ChecklistDto> checklists = new ArrayList<ChecklistDto>();
+		
+		listService.findByOwnerId(token.getUserId()).stream()
+		.forEach(item -> {
+			checklists.add(ChecklistDto.fromEntity(item));
+		});
+		
+		LOG.info("action=get_checklists count={}", checklists.size());
+		
+		ChecklistIndex index = new ChecklistIndex();
+		index.lists = checklists;
+		
+		return index;*/
 	}
+	
+	
+	class ChecklistIndex {
+		public List<ChecklistDto> lists;
+	}
+
 }
