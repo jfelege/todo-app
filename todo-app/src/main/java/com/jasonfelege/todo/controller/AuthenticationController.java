@@ -38,7 +38,7 @@ public class AuthenticationController {
 			throw new AuthenticationCredentialsNotFoundException("Username or password was not accepted");
 		}
 		
-		final String jwt = jwtService.generateToken(userDetails.getUsername(), String.valueOf(userDetails.getId));
+		final String jwt = jwtService.generateToken(userDetails.getUsername(), String.valueOf(userDetails.getId()));
 
 		return new AuthToken(jwt);
 	}
