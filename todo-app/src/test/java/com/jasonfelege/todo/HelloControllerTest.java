@@ -72,6 +72,25 @@ public class HelloControllerTest {
 				));
 	}
 	
+	
+	@Test
+	public void testGenerateAuthTokenWithInvalidCredentials() throws Exception {
+		this.mockMvc.perform(
+				post("/api/auth/token")
+					.param("username", "activeuser").param("password",  "invalidpassword")
+					.accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().is(HttpStatus.BAD_REQUEST.value()));
+	}
+	
+	@Test
+	public void testGenerateAuthTokenWithNonExistantCredentials() throws Exception {
+		this.mockMvc.perform(
+				post("/api/auth/token")
+					.param("username", "nonexisting").param("password",  "password")
+					.accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().is(HttpStatus.BAD_REQUEST.value()));
+	}
+	
 	@Test
 	public void testChecklistsWithMissingAuthToken() throws Exception {
 		this.mockMvc.perform(get("/api/checklists").accept(MediaType.APPLICATION_JSON)) 
