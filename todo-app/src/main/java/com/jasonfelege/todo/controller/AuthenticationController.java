@@ -5,17 +5,12 @@ import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationServiceException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.jasonfelege.todo.controller.domain.AuthToken;
+import com.jasonfelege.todo.controller.dto.AuthToken;
 import com.jasonfelege.todo.security.SecurityContextProvider;
 import com.jasonfelege.todo.security.credentials.UserPassword;
 import com.jasonfelege.todo.security.userdetails.CustomUserDetails;
@@ -44,7 +39,7 @@ public class AuthenticationController {
         this.authHelper = authHelper;
     }
 	
-	@RequestMapping("/token")
+	@RequestMapping(path = "/token",  method = { RequestMethod.GET, RequestMethod.POST })
 	public AuthToken authenticate(String username, String password, HttpServletRequest request) {
 		LOG.info("action=token_authentication username={} password={}", username, "[REDACTED]");
 		UserPassword userPassword = new UserPassword(password);
