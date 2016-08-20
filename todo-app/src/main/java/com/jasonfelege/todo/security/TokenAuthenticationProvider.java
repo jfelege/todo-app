@@ -1,4 +1,4 @@
-package com.jasonfelege.todo.configuration.security;
+package com.jasonfelege.todo.security;
 
 import java.util.Map;
 
@@ -11,7 +11,6 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
-import com.jasonfelege.todo.security.credentials.JsonWebToken;
 import com.jasonfelege.todo.security.userdetails.CustomUserDetails;
 import com.jasonfelege.todo.service.JsonWebTokenService;
 import com.jasonfelege.todo.service.JwtTokenValidationException;

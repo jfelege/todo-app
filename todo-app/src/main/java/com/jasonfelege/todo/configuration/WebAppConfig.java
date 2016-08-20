@@ -17,18 +17,16 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.jasonfelege.todo.configuration.security.AuthenticationFilter;
-import com.jasonfelege.todo.configuration.security.TokenAuthenticationProvider;
 import com.jasonfelege.todo.data.ChecklistRepository;
 import com.jasonfelege.todo.data.ItemRepository;
+import com.jasonfelege.todo.security.AuthenticationFilter;
+import com.jasonfelege.todo.security.TokenAuthenticationProvider;
 import com.jasonfelege.todo.security.data.UserRepository;
 import com.jasonfelege.todo.security.userdetails.CustomUserDetailsService;
-import com.jasonfelege.todo.service.AuthenticationService;
 import com.jasonfelege.todo.service.ChecklistService;
 import com.jasonfelege.todo.service.ChecklistServiceImpl;
 import com.jasonfelege.todo.service.ItemService;
@@ -73,7 +71,6 @@ public class WebAppConfig extends WebSecurityConfigurerAdapter {
 		http.
 		csrf().disable()
 		.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-		//.authenticationProvider(getCustomAuthenticationProvider())
 		.and()
 		.authorizeRequests()
 			.anyRequest().authenticated()
@@ -100,20 +97,11 @@ public class WebAppConfig extends WebSecurityConfigurerAdapter {
 				);
 		return provider;
 	}
-	
-	@Bean
-	public AuthenticationService getAuthenticationService() throws Exception {
-		AuthenticationService service = new AuthenticationService(
-				SecurityContextHolder.getContext(), 
-				authenticationManager());
-		return service;
-	}
-	
+
 	@Bean
 	public AuthenticationEntryPoint unauthorizedEntryPoint() {
 		return (request, response, authException) -> response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
 	}
-	
 
 	@Autowired
 	private UserRepository userRepo;
@@ -137,71 +125,5 @@ public class WebAppConfig extends WebSecurityConfigurerAdapter {
 	public ItemService getItemService(@Autowired ItemRepository itemRepository) {
 		return new ItemServiceImpl(itemRepository);
 	}
-	
-	/*
-	@Autowired
-	private UserRepository userRepo;
-
-	@Autowired
-	private AuthenticationManager authManager;
-	
-	@Autowired
-	private AuthenticationService authenticationService;
-
-
-
-	@Bean
-	public UserDetailsService userDetailsService() {
-		return new CustomUserDetailsService(userRepo);
-	}
-
-	@Bean
-	public CustomUserDetailsService getCustomUserDetailsService() {
-		return (CustomUserDetailsService) userDetailsService();
-	}
-	
-	@Bean
-	public ChecklistService getChecklistService(@Autowired ChecklistRepository checklistRepository) {
-		return new ChecklistServiceImpl(checklistRepository);
-	}
-	
-	@Bean
-	public ItemService getItemService(@Autowired ItemRepository itemRepository) {
-		return new ItemServiceImpl(itemRepository);
-	}
-
-    
-	@Bean
-	public CustomAuthenticationProvider getCustomAuthenticationProvider() {
-		return new CustomAuthenticationProvider(
-				authenticationService,
-				getCustomUserDetailsService(),
-				securityContextProvider());
-	}
-
-	@Bean
-	public AuthenticationTokenProcessingFilter getAuthenticationTokenProcessingFilter() {
-		return new AuthenticationTokenProcessingFilter(getJsonWebTokenService(), authManager,
-				getCustomUserDetailsService(), securityContextProvider());
-	}
-
-	@Autowired
-	@Override
-	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-		auth.authenticationProvider(getCustomAuthenticationProvider());
-	}
-
-
-
-	@Bean
-	public SecurityContextProvider securityContextProvider() {
-		return new SecurityContextProvider();
-	}
-
-	@Bean
-	public AuthenticationEntryPoint getCustomAuthenticationEntryPoint() {
-		CustomAuthenticationEntryPoint point = new CustomAuthenticationEntryPoint();
-		return point;
-	}*/
 	
 }
