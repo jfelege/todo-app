@@ -59,10 +59,6 @@ dependencies {
     
 }
 
-//test {
-//	outputs.dir snippetsDir
-//}
-
 asciidoctor {
 	attributes 'snippets': snippetsDir
 	inputs.dir snippetsDir
