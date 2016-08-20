@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.jasonfelege.todo.exceptions.JwtTokenValidationException;
 import com.jasonfelege.todo.exceptions.NonExposingException;
+import com.jasonfelege.todo.exceptions.UserNotFoundException;
 
 @ControllerAdvice
 public class GlobalControllerAdvice {
@@ -27,13 +28,25 @@ public class GlobalControllerAdvice {
 		this.disableStackTrace = hideStackTrace;
 	}
 
-	@ExceptionHandler(AuthenticationException.class)
+	@ExceptionHandler(UserNotFoundException.class)
 	@ResponseBody
 	public ResponseEntity<?> handleUserNotFoundException(HttpServletRequest req, Exception e) {
 		LOGGER.error(e.getMessage(), e);
 
 		if (disableStackTrace) {
-			e = (Exception) new NonExposingException("invalid user credentials");
+			e = (Exception) new NonExposingException("user not found");
+		}
+
+		return new ResponseEntity<>(e, HttpStatus.UNAUTHORIZED);
+	}
+	
+	@ExceptionHandler(AuthenticationException.class)
+	@ResponseBody
+	public ResponseEntity<?> handleAuthenticationException(HttpServletRequest req, Exception e) {
+		LOGGER.error(e.getMessage(), e);
+
+		if (disableStackTrace) {
+			e = (Exception) new NonExposingException("unable to authenticate credentials");
 		}
 
 		return new ResponseEntity<>(e, HttpStatus.UNAUTHORIZED);
@@ -69,9 +82,9 @@ public class GlobalControllerAdvice {
 		LOGGER.error(e.getMessage(), e);
 
 		if (disableStackTrace) {
-			e = (Exception) new NonExposingException("bad request");
+			e = (Exception) new NonExposingException("internal server error");
 		}
 
-		return new ResponseEntity<>(e, HttpStatus.BAD_REQUEST);
+		return new ResponseEntity<>(e, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 }

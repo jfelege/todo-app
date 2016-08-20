@@ -59,6 +59,8 @@ public class TokenAuthenticationProvider implements AuthenticationProvider {
 					userDetail.getAuthorities()
 					);
 			
+			authenticatedToken.setDetails(authentication.getDetails());
+			
 			LOG.info("action=authenticate_token authentication={}", authenticatedToken);
 			return authenticatedToken;
 		}

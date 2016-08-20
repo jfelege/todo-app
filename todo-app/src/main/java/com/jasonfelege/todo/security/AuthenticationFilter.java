@@ -1,6 +1,8 @@
 package com.jasonfelege.todo.security;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -40,15 +42,28 @@ public class AuthenticationFilter extends GenericFilterBean {
 		String token = parseTokenFromHeader(authHeader);
 		
 		if (token != null) {
-			processTokenAuthentication(token);
+			String baseDomain = getURLBase(httpRequest);
+			
+			AuthenticationDetails details = new AuthenticationDetails();
+			details.setBaseDomain(baseDomain);
+			
+			processTokenAuthentication(token, details);
 		}
 	
 		chain.doFilter(request, response);
 	}
 	
-	private Authentication processTokenAuthentication(String token) {	
+	static String getURLBase(HttpServletRequest request) throws MalformedURLException {
+	    URL requestURL = new URL(request.getRequestURL().toString());
+	    String port = requestURL.getPort() == -1 ? "" : ":" + requestURL.getPort();
+	    return requestURL.getProtocol() + "://" + requestURL.getHost() + port;
+	}
+	
+	private Authentication processTokenAuthentication(String token, AuthenticationDetails details) {	
 		PreAuthenticatedAuthenticationToken requestAuthentication = new PreAuthenticatedAuthenticationToken(token,
 				null);
+		
+		requestAuthentication.setDetails(details);
 
 		LOG.info("action=processTokenAuthentication msg=requesting_auth token={}", token);
 		
@@ -62,6 +77,7 @@ public class AuthenticationFilter extends GenericFilterBean {
 		}
 
 		SecurityContextHolder.getContext().setAuthentication(resultOfAuthentication);
+		
 		
 		return resultOfAuthentication;
 	}

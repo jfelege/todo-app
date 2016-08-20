@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import com.jasonfelege.todo.data.UserRepository;
 import com.jasonfelege.todo.data.domain.User;
+import com.jasonfelege.todo.exceptions.UserNotFoundException;
 
 public class CustomUserDetailsService implements UserDetailsService {
 	private static final Logger LOG = LoggerFactory.getLogger(CustomUserDetailsService.class);
@@ -21,18 +22,12 @@ public class CustomUserDetailsService implements UserDetailsService {
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		
-		User user = userRepo.findOneByNameIgnoreCase(username);
-		
-		if (user == null) {
-			LOG.info("action=loadUserByUsername username={} status=not_found", username);
-			throw new UsernameNotFoundException("user " + username + " not found");
-		}
+		User user = userRepo.findOneByNameIgnoreCase(username)
+				.orElseThrow(() -> new UserNotFoundException(username));
 		
 		CustomUserDetails details = CustomUserDetails.fromUser(user);
 		LOG.info("action=loadUserByUsername username={} status=found details={}", username, details);
 		
 		return details;
 	}
-	
-	
 }

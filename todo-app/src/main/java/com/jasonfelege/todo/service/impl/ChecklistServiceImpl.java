@@ -1,6 +1,7 @@
 package com.jasonfelege.todo.service.impl;
 
 import java.util.List;
+import java.util.Optional;
 
 import javax.transaction.Transactional;
 
@@ -17,7 +18,7 @@ public class ChecklistServiceImpl implements ChecklistService {
 	}
 	
 	@Transactional
-	public List<Checklist> findByOwnerId(long userId) {
+	public Optional<List<Checklist>> findByOwnerId(long userId) {
 		return checklistRepo.findByOwnerId(userId);
 	}
 	
