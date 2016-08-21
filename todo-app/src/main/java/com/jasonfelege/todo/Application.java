@@ -73,12 +73,18 @@ public class Application {
 			userRepo.save(user2);
 
 			User user3 = new User();
-			user3.setName("inactiveuser");
+			user3.setName("activeuser2");
 			user3.setPassword(hashed);
 			user3.setEnabled(false);
 			user3.setRoles(userRoles);
 			userRepo.save(user3);
 			
+			User user4 = new User();
+			user4.setName("inactiveuser");
+			user4.setPassword(hashed);
+			user4.setEnabled(false);
+			user4.setRoles(userRoles);
+			userRepo.save(user4);
 		};
 	}
 }

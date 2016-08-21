@@ -11,4 +11,7 @@ public interface ChecklistRepository extends CrudRepository<Checklist, Long> {
 
 	Optional<List<Checklist>> findByOwnerId(long userId);
 	
+	Optional<Checklist> findById(long id);
+	
+	Optional<Integer> deleteById(long id);
 }

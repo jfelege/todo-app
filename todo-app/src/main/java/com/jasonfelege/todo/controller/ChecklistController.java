@@ -1,14 +1,20 @@
 package com.jasonfelege.todo.controller;
 
+import static com.jasonfelege.todo.controller.ControllerUtil.validateAuthentication;
+import static com.jasonfelege.todo.controller.ControllerUtil.validateUser;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import javax.persistence.EntityNotFoundException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -19,8 +25,8 @@ import com.jasonfelege.todo.controller.dto.ChecklistDto;
 import com.jasonfelege.todo.data.UserRepository;
 import com.jasonfelege.todo.data.domain.Checklist;
 import com.jasonfelege.todo.data.domain.User;
+import com.jasonfelege.todo.exceptions.InvalidEntitlementException;
 import com.jasonfelege.todo.exceptions.JwtTokenValidationException;
-import com.jasonfelege.todo.exceptions.UserNotFoundException;
 import com.jasonfelege.todo.security.AuthenticationDetails;
 import com.jasonfelege.todo.security.JsonWebToken;
 import com.jasonfelege.todo.service.ChecklistService;
@@ -34,21 +40,52 @@ public class ChecklistController {
 	private final UserRepository userRepository;
 
 	public ChecklistController(ChecklistService listService, UserRepository userRepository) {
-
 		this.listService = listService;
 		this.userRepository = userRepository;
 	}
 
 	@Secured("ROLE_USER")
-	@RequestMapping(path = "/", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(path = "/{id}", method = RequestMethod.DELETE)
+	public ChecklistDeleted createChecklists(Authentication auth, @PathVariable long id)
+			throws JwtTokenValidationException, JsonProcessingException {
+		
+		auth = validateAuthentication(auth);
+		
+		LOG.info("action=delete_checklist id={}", id);
+		
+		JsonWebToken token = (JsonWebToken) auth.getPrincipal();
+
+		User user = validateUser(token.getUserId(), userRepository);
+		
+		Checklist list = listService.findById(id).orElseThrow(() -> new EntityNotFoundException("entity not found"));
+
+		long userId = user.getId();
+		long ownerId = list.getOwner().getId();
+		
+		if (ownerId != userId) {
+			LOG.info("action=delete_checklist id={} owner_id={} user_id={}", id, ownerId, userId);
+			throw new InvalidEntitlementException("entity owned different user");
+		}
+		
+		Long savedList = Long.valueOf(listService.deleteById(id).get());
+		
+		ChecklistDeleted dto = new ChecklistDeleted();
+		dto.id = savedList;
+		return dto;
+	}
+	
+	@Secured("ROLE_USER")
+	@RequestMapping(method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ChecklistDto createChecklists(Authentication auth, @RequestBody ChecklistDto input)
 			throws JwtTokenValidationException, JsonProcessingException {
-
+		
+		auth = validateAuthentication(auth);
+		
 		JsonWebToken token = (JsonWebToken) auth.getPrincipal();
 		AuthenticationDetails authDetails = (AuthenticationDetails) auth.getDetails();
 		final String baseDomain = authDetails.getBaseDomain();
 
-		User owner = validateUser(token.getUserId());
+		User owner = validateUser(token.getUserId(), userRepository);
 
 		Checklist checklist = new Checklist();
 		checklist.setName(input.getName());
@@ -57,43 +94,6 @@ public class ChecklistController {
 
 		ChecklistDto dto = ChecklistDto.fromEntity(savedList, baseDomain);
 		return dto;
-
-		/*
-		 * Map<String, Object> claims =
-		 * jwtService.verifyToken(authToken.substring(7));
-		 * 
-		 * String name =
-		 * (String)claims.get(JsonWebTokenService.ClaimTypes.userName.name());
-		 * long userId =
-		 * Long.parseLong((String)claims.get(JsonWebTokenService.ClaimTypes.
-		 * userId.name()));
-		 * 
-		 * LOG.info("action=helloWorld username={} userid={} token={}", name,
-		 * userId, authToken);
-		 * 
-		 * User user = userRepository.findOne(userId);
-		 * 
-		 * Item item1 = new Item(); item1.setName("active item");
-		 * item1.setComplete(false); Item item1b = itemService.save(item1);
-		 * LOG.info("item_id={} item_name={} item_complete={}", item1b.getId(),
-		 * item1b.getName(), item1b.isComplete());
-		 * 
-		 * Item item2 = new Item(); item2.setName("completed item");
-		 * item2.setComplete(true); Item item2b = itemService.save(item2);
-		 * LOG.info("item_id={} item_name={} item_complete={}", item2b.getId(),
-		 * item2b.getName(), item2b.isComplete());
-		 * 
-		 * List<Item> items = new ArrayList<Item>(); items.add(item1b);
-		 * items.add(item2b);
-		 * 
-		 * Checklist list1 = new Checklist(); list1.setOwner(user);
-		 * list1.setName("My Todo List");
-		 * 
-		 * list1.setItems(items); Checklist newList = listService.save(list1);
-		 * 
-		 * return newList;
-		 */
-
 	}
 
 	@Secured("ROLE_USER")
@@ -101,13 +101,15 @@ public class ChecklistController {
 	public ChecklistIndex getChecklists(Authentication auth)
 			throws JwtTokenValidationException, JsonProcessingException {
 
+		auth = validateAuthentication(auth);
+		
 		LOG.info("action=get_checklists auth={} details={}", auth, auth.getDetails());
 
 		JsonWebToken token = (JsonWebToken) auth.getPrincipal();
 		AuthenticationDetails authDetails = (AuthenticationDetails) auth.getDetails();
 		final String baseDomain = authDetails.getBaseDomain();
 
-		validateUser(token.getUserId());
+		validateUser(token.getUserId(), userRepository);
 
 		List<ChecklistDto> checklists = new ArrayList<ChecklistDto>();
 
@@ -126,12 +128,12 @@ public class ChecklistController {
 		return index;
 	}
 
-	private User validateUser(long userId) {
-		return this.userRepository.findOneById(userId).orElseThrow(() -> new UserNotFoundException(userId));
-	}
-
 	class ChecklistIndex {
 		public List<ChecklistDto> lists;
+	}
+	
+	class ChecklistDeleted {
+		public long id;
 	}
 
 }

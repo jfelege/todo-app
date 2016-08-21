@@ -70,4 +70,33 @@ include::{snippets}/token-successful/http-request.adoc[]
 
 include::{snippets}/token-successful/http-response.adoc[]
 
-include::{snippets}/token-successful/response-fields.adoc[]
+[[checklists]]
+= Checklists
+
+[[checklists-create]]
+== Checklists: Create
+
+The following are the API calls to create and manage your checklists.
+
+include::{snippets}/checklist-create-successful/response-fields.adoc[]
+
+include::{snippets}/checklist-create-successful/http-request.adoc[]
+
+include::{snippets}/checklist-create-successful/http-response.adoc[]
+
+include::{snippets}/checklist-create-successful/response-fields.adoc[]
+
+[[checklists-delete]]
+== Checklists: delete
+
+The following are the API calls to create and manage your checklists.
+
+include::{snippets}/checklist-delete-successful/response-fields.adoc[]
+
+include::{snippets}/checklist-delete-successful/http-request.adoc[]
+
+include::{snippets}/checklist-delete-successful/http-response.adoc[]
+
+include::{snippets}/checklist-delete-successful/response-fields.adoc[]
+
+

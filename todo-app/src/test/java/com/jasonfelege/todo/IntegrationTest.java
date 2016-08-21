@@ -6,6 +6,7 @@ import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.docu
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -108,4 +109,83 @@ public class IntegrationTest {
 		.andExpect(status().is(HttpStatus.OK.value()))
 		.andDo(document("checklist-succesful"));
 	}
+	
+	@Test
+	public void testCreateChecklistWithAuthToken() throws Exception {
+		String jwt = jwtService.generateToken("activeuser", "2");
+		
+		this.mockMvc.perform(
+				post("/api/checklists")
+				.content("{\"name\": \"test list\"}")
+				.contentType(MediaType.APPLICATION_JSON)
+				.header("Authorization", "bearer " + jwt)
+				.accept(MediaType.APPLICATION_JSON)) 
+		.andExpect(status().is(HttpStatus.OK.value()))
+		.andExpect(jsonPath("$.id").isNotEmpty())
+		.andExpect(jsonPath("$.name", is("test list")))
+		.andDo(document("checklist-create-successful",responseFields(
+				fieldWithPath("id").description("id of checklist created"),
+				fieldWithPath("name").description("name of the checklist"),
+				fieldWithPath("self_href").description("hyperlink to resource")
+				)));
+	}
+	
+	@Test
+	public void testDeleteChecklistWithAuthToken() throws Exception {
+		String jwt = jwtService.generateToken("activeuser", "2");
+		
+		this.mockMvc.perform(
+				delete("/api/checklists/1")
+				.contentType(MediaType.APPLICATION_JSON)
+				.header("Authorization", "bearer " + jwt)
+				.accept(MediaType.APPLICATION_JSON)) 
+		.andExpect(status().is(HttpStatus.OK.value()))
+		.andExpect(jsonPath("$.id").isNotEmpty())
+		.andDo(document("checklist-delete-successful",responseFields(
+				fieldWithPath("id").description("id of checklist deleted")
+				)));
+	}
+	
+	
+	/*
+	 * This test needs improvement of proper setup prior to deletion.
+	 * @Test
+	public void testDeleteNonOwnedChecklistWithAuthToken() throws Exception {
+		String jwt = jwtService.generateToken("activeuser2", "3");
+
+		testCreateChecklistWithAuthToken();
+		
+		this.mockMvc.perform(
+				delete("/api/checklists/2")
+				.header("Authorization", "bearer " + jwt)
+				.accept(MediaType.APPLICATION_JSON)) 
+		.andExpect(status().is(HttpStatus.UNAUTHORIZED.value()))
+		.andDo(document("checklist-delete-nonowned-attempted"));
+	}*/
+	
+	@Test
+	public void testDeleteExistantChecklistWithAuthToken() throws Exception {
+		String jwt = jwtService.generateToken("activeuser", "2");
+		
+		this.mockMvc.perform(
+				delete("/api/checklists/1")
+				.header("Authorization", "bearer " + jwt)
+				.accept(MediaType.APPLICATION_JSON)) 
+		.andExpect(status().is(HttpStatus.NOT_FOUND.value()))
+		.andDo(document("checklist-delete-nonexisting-successful"));
+	}
+	
+	@Test
+	public void testDeleteNonExistantChecklistWithAuthToken() throws Exception {
+		String jwt = jwtService.generateToken("activeuser", "2");
+		
+		this.mockMvc.perform(
+				delete("/api/checklists/3947402847")
+				.header("Authorization", "bearer " + jwt)
+				.accept(MediaType.APPLICATION_JSON)) 
+		.andExpect(status().is(HttpStatus.NOT_FOUND.value()))
+		.andDo(document("checklist-delete-nonexistant"));
+	}
+	
+	
 }

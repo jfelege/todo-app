@@ -34,7 +34,7 @@ public class Checklist {
 
 	@Version
     private long version;
-
+	
 	public long getId() {
 		return id;
 	}
