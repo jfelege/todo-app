@@ -106,6 +106,10 @@ public class LogEventImpl implements LogEvent {
     	addField(LogEvent.Fields.USER, user);
     }
     
+    public void setUserId(String userId) {
+    	addField(LogEvent.Fields.USER_ID, userId);
+    }
+    
     public void setPassword(String password) {
     	addField(LogEvent.Fields.PASSWORD, password);
     }
@@ -128,5 +132,9 @@ public class LogEventImpl implements LogEvent {
     
     public void setHttpUri(String uri) {
     	addField(LogEvent.Fields.HTTP_URI, uri);
+    }
+    
+    public void setToken(String token) {
+    	addField(LogEvent.Fields.TOKEN, token);
     }
 }

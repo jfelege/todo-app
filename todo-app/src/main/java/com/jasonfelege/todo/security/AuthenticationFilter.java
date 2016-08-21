@@ -97,9 +97,9 @@ public class AuthenticationFilter extends GenericFilterBean {
 		if (principal instanceof JsonWebToken) {
 			JsonWebToken jwtToken = (JsonWebToken)principal;
 			
-			event.addField("username", jwtToken.getUserName());
-			event.addField("userId", jwtToken.getUserId());
-			event.addField("jwt", jwtToken.getJwt());
+			event.setUser(jwtToken.getUserName());
+			event.setUserId(String.valueOf(jwtToken.getUserId()));
+			event.setToken(jwtToken.getJwt());
 		}
 	}
 	private static String getURLBase(HttpServletRequest request) throws MalformedURLException {
