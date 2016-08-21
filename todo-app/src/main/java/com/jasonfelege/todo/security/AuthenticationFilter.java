@@ -21,6 +21,7 @@ import org.springframework.security.authentication.InternalAuthenticationService
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.GenericFilterBean;
 
 import com.jasonfelege.todo.logging.LogEvent;
@@ -43,22 +44,29 @@ public class AuthenticationFilter extends GenericFilterBean {
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
 			throws IOException, ServletException {
 		
-		String uuid = UUID.randomUUID().toString().replaceAll("-", "");
-		MDC.put("request_id", uuid);
+		MDC.put("request_id", UUID.randomUUID().toString().replaceAll("-", ""));
 		
-		HttpServletRequest httpRequest = (HttpServletRequest)request;
-		HttpServletResponse httpResponse = (HttpServletResponse)response;
+		final HttpServletRequest httpRequest = (HttpServletRequest)request;
+		final HttpServletResponse httpResponse = (HttpServletResponse)response;
 
-		final String uri = httpRequest.getRequestURI();
-		
 		final LogEvent event = logEventFactory.getEvent("authentication_filter", httpRequest);
-		event.setHttpUri(uri);
+		event.setHttpUri(httpRequest.getRequestURI());
 		
-		String authHeader = httpRequest.getHeader("Authorization");
-		String token = parseTokenFromHeader(authHeader);
-		event.addField("authorization", authHeader);
-
+		final String authHeader = httpRequest.getHeader("Authorization");
+		
+		if (StringUtils.isEmpty(authHeader)) {
+			event.setStatus("missing_credential");
+			
+			httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+			
+			LOG.error(event.toString());
+			return;
+		}
+		
 		try {
+			String token = parseTokenFromHeader(authHeader);
+			event.addField("authorization", authHeader);
+			
 			processToken(event, httpRequest, token);
 		}
 		catch (BadCredentialsException e) {
@@ -88,8 +96,8 @@ public class AuthenticationFilter extends GenericFilterBean {
 		
 		chain.doFilter(request, response);
 	}
+	
 	private void processToken(LogEvent event, HttpServletRequest httpRequest, String token) throws MalformedURLException {
-		
 		final String baseDomain = getURLBase(httpRequest);
 
 		AuthenticationDetails details = new AuthenticationDetails();
