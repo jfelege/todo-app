@@ -3,11 +3,13 @@ package com.jasonfelege.todo.controller;
 import static com.jasonfelege.todo.controller.ControllerUtil.validateAuthentication;
 import static com.jasonfelege.todo.controller.ControllerUtil.validateUser;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.EntityNotFoundException;
+import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -238,6 +240,31 @@ public class ChecklistController {
 		index.items = dtos;
 		
 		return index;
+	}
+	
+	@Secured("ROLE_USER")
+	@RequestMapping(path = "/{id}/items/{itemId}", method = RequestMethod.GET)
+	public void createChecklistItem(Authentication auth, @PathVariable long id, @PathVariable long itemId, HttpServletResponse httpServletResponse)
+			throws JwtTokenValidationException, IOException {
+	
+		auth = validateAuthentication(auth);
+		
+		LOG.info("action=create_checklist_item auth={} id={} dto={}", auth, id);
+
+		JsonWebToken token = (JsonWebToken) auth.getPrincipal();
+		AuthenticationDetails authDetails = (AuthenticationDetails) auth.getDetails();
+		final String baseDomain = authDetails.getBaseDomain();
+		
+		ItemDto dto = new ItemDto();
+		dto.setBaseDomain(baseDomain);
+		dto.setId(id);
+		dto.getSelfHref();
+		
+		httpServletResponse
+			.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
+		httpServletResponse
+			.setHeader("Location", dto.getSelfHref());
+		httpServletResponse.setHeader("Connection", "close");
 	}
 	
 	@Secured("ROLE_USER")
