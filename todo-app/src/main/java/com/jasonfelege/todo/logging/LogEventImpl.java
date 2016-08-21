@@ -137,4 +137,8 @@ public class LogEventImpl implements LogEvent {
     public void setToken(String token) {
     	addField(LogEvent.Fields.TOKEN, token);
     }
+    
+    public void setId(String id) {
+    	addField(LogEvent.Fields.ID, id);
+    }
 }

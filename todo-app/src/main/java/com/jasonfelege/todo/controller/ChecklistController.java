@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.EntityNotFoundException;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
@@ -32,6 +33,8 @@ import com.jasonfelege.todo.data.domain.Item;
 import com.jasonfelege.todo.data.domain.User;
 import com.jasonfelege.todo.exceptions.InvalidEntitlementException;
 import com.jasonfelege.todo.exceptions.JwtTokenValidationException;
+import com.jasonfelege.todo.logging.LogEvent;
+import com.jasonfelege.todo.logging.LogEventFactory;
 import com.jasonfelege.todo.security.AuthenticationDetails;
 import com.jasonfelege.todo.security.JsonWebToken;
 import com.jasonfelege.todo.service.ChecklistService;
@@ -44,40 +47,55 @@ public class ChecklistController {
 	private final ChecklistService listService;
 	private final UserRepository userRepository;
 	private final ItemRepository itemRepository;
+	private final LogEventFactory logEventFactory;
 
-	public ChecklistController(ChecklistService listService, ItemRepository itemRepository, UserRepository userRepository) {
+	public ChecklistController(ChecklistService listService, 
+			ItemRepository itemRepository, 
+			UserRepository userRepository,
+			LogEventFactory logEventFactory) {
+		
 		this.listService = listService;
 		this.userRepository = userRepository;
 		this.itemRepository = itemRepository;
+		this.logEventFactory = logEventFactory;
 	}
 
 	@Secured("ROLE_USER")
-	@RequestMapping(path = "/{id}", method = RequestMethod.DELETE)
-	public ChecklistDeleted deleteChecklist(Authentication auth, @PathVariable long id)
+	@RequestMapping(path = "/{checklistId}", method = RequestMethod.DELETE)
+	public ChecklistDeleted deleteChecklist(
+			HttpServletRequest request,
+			Authentication auth, @PathVariable long checklistId)
 			throws JwtTokenValidationException, JsonProcessingException {
 		
+		final LogEvent event = logEventFactory.getEvent("delete_checklist", request);
+		event.setId(String.valueOf(checklistId));
+		
 		auth = validateAuthentication(auth);
+		final JsonWebToken token = (JsonWebToken) auth.getPrincipal();
+		validateUser(token.getUserId(), userRepository);
 		
-		LOG.info("action=delete_checklist id={}", id);
+		event.setUserId(String.valueOf(token.getUserId()));
 		
-		JsonWebToken token = (JsonWebToken) auth.getPrincipal();
+		Checklist list = listService.findById(checklistId)
+				.orElseThrow(() -> new EntityNotFoundException("entity not found"));
 
-		User user = validateUser(token.getUserId(), userRepository);
-		
-		Checklist list = listService.findById(id).orElseThrow(() -> new EntityNotFoundException("entity not found"));
-
-		long userId = user.getId();
+		long userId = token.getUserId();
 		long ownerId = list.getOwner().getId();
 		
+		event.addField("owner_id", String.valueOf(ownerId));
+		
 		if (ownerId != userId) {
-			LOG.info("action=delete_checklist id={} owner_id={} user_id={}", id, ownerId, userId);
+			event.setStatus("failed");
+			LOG.info(event.toString());
 			throw new InvalidEntitlementException("entity owned different user");
 		}
 		
-		Long savedList = Long.valueOf(listService.deleteById(id).get());
+		Long savedList = Long.valueOf(listService.deleteById(checklistId).get());
 		
-		ChecklistDeleted dto = new ChecklistDeleted();
-		dto.id = savedList;
+		ChecklistDeleted dto = new ChecklistDeleted(savedList);
+
+		event.setStatus("success");
+		LOG.info(event.toString());
 		return dto;
 	}
 	
@@ -325,7 +343,15 @@ public class ChecklistController {
 	}
 	
 	class ChecklistDeleted {
-		public long id;
+		private long id;
+		
+		public ChecklistDeleted(long id) {
+			this.id = id;
+		}
+		
+		public long getId() {
+			return this.id;
+		}
 	}
 
 }

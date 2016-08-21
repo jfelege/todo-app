@@ -18,12 +18,13 @@ public interface LogEvent {
 		REQUEST_ID("request_id"), MESSAGE("message"), USER("user"), USER_ID("user_id") ,
 		PASSWORD("password"), ACTION("action"), HTTP_STATUS("http_status"),
 		STATUS("status"), HTTP_METHOD("http_method"), HTTP_URI("http_uri"),
-		TOKEN("token")
+		TOKEN("token"), ID("id")
 		;
 		private final String text; private Fields(final String text) { this.text = text; } public String toString() { return text; } }
 	
 	// attributes
 	void setRequestId(String requestId);
+	void setId(String id);
 	void setMessage(String message);
 	void setUser(String user);
 	void setUserId(String userId);
