@@ -89,7 +89,9 @@ public class WebAppConfig extends WebSecurityConfigurerAdapter {
 		
 		http
 			.addFilterBefore(
-					new AuthenticationFilter(authenticationManager()), 
+					new AuthenticationFilter(
+							authenticationManager(),
+							getLogEventFactory()), 
 				UsernamePasswordAuthenticationFilter.class);
 	}
 
@@ -117,7 +119,9 @@ public class WebAppConfig extends WebSecurityConfigurerAdapter {
 	
 	@Bean
 	public UserDetailsService userDetailsService() {
-		return new CustomUserDetailsService(userRepo);
+		return new CustomUserDetailsService(
+				userRepo,
+				getLogEventFactory());
 	}
 
 	@Bean

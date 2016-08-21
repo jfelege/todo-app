@@ -90,9 +90,6 @@ public class LogEventImpl implements LogEvent {
         return output.toString();
     }
     
-    /**
-     * Java Throwable type fields
-     */
     private static final String THROWABLE_CLASS = "throwable_class";
     private static final String THROWABLE_MESSAGE = "throwable_message";
     private static final String THROWABLE_STACKTRACE_ELEMENTS = "stacktrace_elements";
@@ -119,5 +116,17 @@ public class LogEventImpl implements LogEvent {
     
     public void setHttpStatus(String code) {
     	addField(LogEvent.Fields.HTTP_STATUS, code);
+    }
+    
+    public void setStatus(String status) {
+    	addField(LogEvent.Fields.STATUS, status);
+    }
+    
+    public void setHttpMethod(String method) {
+    	addField(LogEvent.Fields.HTTP_METHOD, method);
+    }
+    
+    public void setHttpUri(String uri) {
+    	addField(LogEvent.Fields.HTTP_URI, uri);
     }
 }

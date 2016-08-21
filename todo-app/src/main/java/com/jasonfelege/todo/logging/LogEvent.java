@@ -16,7 +16,8 @@ public interface LogEvent {
 	
 	public static enum Fields { 
 		REQUEST_ID("request_id"), MESSAGE("message"), USER("user"), 
-		PASSWORD("password"), ACTION("action"), HTTP_STATUS("http_status")
+		PASSWORD("password"), ACTION("action"), HTTP_STATUS("http_status"),
+		STATUS("status"), HTTP_METHOD("http_method"), HTTP_URI("http_uri")
 		;
 		private final String text; private Fields(final String text) { this.text = text; } public String toString() { return text; } }
 	
@@ -27,4 +28,7 @@ public interface LogEvent {
 	void setPassword(String password);
 	void setAction(String actionName);
 	void setHttpStatus(String code);
+	void setHttpMethod(String method);
+	void setHttpUri(String uri);
+	void setStatus(String name);
 }

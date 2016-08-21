@@ -14,12 +14,14 @@ public class LogEventFactory {
 	public LogEvent getEvent(String name) {
 		return context.getBean(LogEvent.class, name);
 	}
-
+	
 	public LogEvent getEvent(String name, HttpServletRequest req) {
 		LogEvent event = getEvent(name);
 		
 		if (event == null) return null;
 		if (req == null) return event;
+		
+		event.setHttpMethod(req.getMethod());
     	
     	return event;
 	}

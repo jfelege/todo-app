@@ -20,15 +20,21 @@ import com.jasonfelege.todo.exceptions.InvalidEntitlementException;
 import com.jasonfelege.todo.exceptions.JwtTokenValidationException;
 import com.jasonfelege.todo.exceptions.NonExposingException;
 import com.jasonfelege.todo.exceptions.UserNotFoundException;
+import com.jasonfelege.todo.logging.LogEvent;
+import com.jasonfelege.todo.logging.LogEventFactory;
 
 @ControllerAdvice
 public class GlobalControllerAdvice {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GlobalControllerAdvice.class);
 	
+	private final LogEventFactory logEventFactory;
 	private final boolean disableStackTrace;
 	
-	public GlobalControllerAdvice(@Value("${app.disableStackTrace}") Boolean hideStackTrace) {
+	public GlobalControllerAdvice(
+			@Value("${app.disableStackTrace}") Boolean hideStackTrace,
+			LogEventFactory logEventFactory) {
 		this.disableStackTrace = hideStackTrace;
+		this.logEventFactory = logEventFactory;
 	}
 	
 	@ExceptionHandler(InvalidEntitlementException.class)
@@ -80,12 +86,16 @@ public class GlobalControllerAdvice {
 	}
 	
 	private ResponseEntity<?> handleException(Exception e, String message, HttpStatus status) {
-		LOGGER.error(e.getMessage(), e);
-
+		final LogEvent event = logEventFactory.getEvent("error");
+		event.setHttpStatus(String.valueOf(status.value()));
+		event.setMessage(message);
+		event.addThrowableWithStacktrace(e);
+		
 		if (disableStackTrace) {
 			e = (Exception) new NonExposingException(message);
 		}
 
+		LOGGER.error(event.toString());
 		return new ResponseEntity<>(e, status);
 	}
 }
