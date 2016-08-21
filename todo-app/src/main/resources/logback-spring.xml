@@ -26,7 +26,7 @@
 	</appender>
 	
 	<!-- default logging levels -->
-	<logger name="org.springframework" level="DEBUG"/>
+	<logger name="org.springframework" level="INFO"/>
 	<logger name="org.hibernate" level="INFO"/>
 	<logger name="com.jasonfelege.todo" level="DEBUG"/>
 	<logger name="logging.level.org.hibernate.SQL" level="DEBUG"/>
