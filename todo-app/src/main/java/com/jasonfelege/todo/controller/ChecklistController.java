@@ -46,7 +46,7 @@ public class ChecklistController {
 
 	@Secured("ROLE_USER")
 	@RequestMapping(path = "/{id}", method = RequestMethod.DELETE)
-	public ChecklistDeleted createChecklists(Authentication auth, @PathVariable long id)
+	public ChecklistDeleted deleteChecklist(Authentication auth, @PathVariable long id)
 			throws JwtTokenValidationException, JsonProcessingException {
 		
 		auth = validateAuthentication(auth);
@@ -76,10 +76,12 @@ public class ChecklistController {
 	
 	@Secured("ROLE_USER")
 	@RequestMapping(method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
-	public ChecklistDto createChecklists(Authentication auth, @RequestBody ChecklistDto input)
+	public ChecklistDto createChecklist(Authentication auth, @RequestBody ChecklistDto input)
 			throws JwtTokenValidationException, JsonProcessingException {
 		
 		auth = validateAuthentication(auth);
+		
+		LOG.info("action=post_checklist auth={} dto={}", auth, input);
 		
 		JsonWebToken token = (JsonWebToken) auth.getPrincipal();
 		AuthenticationDetails authDetails = (AuthenticationDetails) auth.getDetails();
@@ -95,6 +97,31 @@ public class ChecklistController {
 		ChecklistDto dto = ChecklistDto.fromEntity(savedList, baseDomain);
 		return dto;
 	}
+	
+	
+	@Secured("ROLE_USER")
+	@RequestMapping(path = "/{id}", method = RequestMethod.PATCH, consumes = MediaType.APPLICATION_JSON_VALUE)
+	public ChecklistDto updateChecklist(Authentication auth, @PathVariable long id, @RequestBody ChecklistDto input)
+			throws JwtTokenValidationException, JsonProcessingException {
+		
+		auth = validateAuthentication(auth);
+		
+		LOG.info("action=put_checklist auth={} id={} dto={}", auth, id, input);
+		
+		JsonWebToken token = (JsonWebToken) auth.getPrincipal();
+		AuthenticationDetails authDetails = (AuthenticationDetails) auth.getDetails();
+		final String baseDomain = authDetails.getBaseDomain();
+
+		validateUser(token.getUserId(), userRepository);
+
+		Checklist checklist = listService.findById(id).get();
+		checklist.setName(input.getName());
+		
+		Checklist savedList = listService.save(checklist);
+
+		ChecklistDto dto = ChecklistDto.fromEntity(savedList, baseDomain);
+		return dto;
+	}
 
 	@Secured("ROLE_USER")
 	@RequestMapping(method = RequestMethod.GET)
@@ -103,7 +130,7 @@ public class ChecklistController {
 
 		auth = validateAuthentication(auth);
 		
-		LOG.info("action=get_checklists auth={} details={}", auth, auth.getDetails());
+		LOG.info("action=get_checklists auth={}", auth);
 
 		JsonWebToken token = (JsonWebToken) auth.getPrincipal();
 		AuthenticationDetails authDetails = (AuthenticationDetails) auth.getDetails();
@@ -120,14 +147,42 @@ public class ChecklistController {
 			checklists.add(dto);
 		});
 
-		LOG.info("action=get_checklists count={}", checklists.size());
-
 		ChecklistIndex index = new ChecklistIndex();
 		index.lists = checklists;
 
 		return index;
 	}
 
+	@Secured("ROLE_USER")
+	@RequestMapping(path = "/{id}", method = RequestMethod.GET)
+	public ChecklistDto getChecklist(Authentication auth, @PathVariable long id)
+			throws JwtTokenValidationException, JsonProcessingException {
+
+		auth = validateAuthentication(auth);
+		
+		LOG.info("action=put_checklist auth={} id={} dto={}", auth, id);
+
+		JsonWebToken token = (JsonWebToken) auth.getPrincipal();
+		AuthenticationDetails authDetails = (AuthenticationDetails) auth.getDetails();
+		final String baseDomain = authDetails.getBaseDomain();
+
+		User user = validateUser(token.getUserId(), userRepository);
+
+		Checklist item = listService.findById(id).get();
+
+		long userId = user.getId();
+		long ownerId = item.getOwner().getId();
+		
+		if (ownerId != userId) {
+			LOG.info("action=delete_checklist id={} owner_id={} user_id={}", id, ownerId, userId);
+			throw new InvalidEntitlementException("entity owned different user");
+		}
+
+		ChecklistDto dto = ChecklistDto.fromEntity(item, baseDomain);
+
+		return dto;
+	}
+	
 	class ChecklistIndex {
 		public List<ChecklistDto> lists;
 	}

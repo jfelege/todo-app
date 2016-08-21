@@ -8,6 +8,7 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.response
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -16,6 +17,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
@@ -25,17 +28,22 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jasonfelege.todo.controller.dto.ChecklistDto;
 import com.jasonfelege.todo.service.JsonWebTokenService;
+
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = TestApplicationConfiguration.class)
 @WebAppConfiguration
 @ActiveProfiles("int-test")
 public class IntegrationTest {
-
+	private static final Logger LOG = LoggerFactory.getLogger(IntegrationTest.class);
+	
 	@Rule
 	public JUnitRestDocumentation restDocumentation = new JUnitRestDocumentation("build/generated-snippets");
 	
@@ -107,7 +115,86 @@ public class IntegrationTest {
 				.header("Authorization", "bearer " + jwt)
 				.accept(MediaType.APPLICATION_JSON)) 
 		.andExpect(status().is(HttpStatus.OK.value()))
-		.andDo(document("checklist-succesful"));
+		.andDo(document("checklist-list-succesful"));
+	}
+	
+	@Test
+	public void testCreateFetchChecklistsWithAuthToken() throws Exception {
+		String jwt = jwtService.generateToken("activeuser", "2");
+		
+		MvcResult result = this.mockMvc.perform(
+				post("/api/checklists")
+				.content("{\"name\": \"test list\"}")
+				.header("Authorization", "bearer " + jwt)
+				.contentType(MediaType.APPLICATION_JSON)
+				.accept(MediaType.APPLICATION_JSON)) 
+		.andExpect(status().is(HttpStatus.OK.value()))
+		.andExpect(jsonPath("$.id").isNumber())
+		.andExpect(jsonPath("$.name").isNotEmpty())
+		.andExpect(jsonPath("$.self_href").isNotEmpty())
+		.andReturn();
+		
+		ObjectMapper mapper = new ObjectMapper();
+		ChecklistDto dto = mapper.readValue(result.getResponse().getContentAsString(), ChecklistDto.class);
+		
+		String uri = "/api/checklists/" + dto.getId();
+		
+		LOG.info("action=testCreateUpdateChecklistsWithAuthToken new_id={} uri={}", dto.getId(), uri);
+		
+		this.mockMvc.perform(
+				get(uri)
+				.header("Authorization", "bearer " + jwt)
+				.accept(MediaType.APPLICATION_JSON)) 
+		.andExpect(status().is(HttpStatus.OK.value()))
+		.andExpect(jsonPath("$.id").isNumber())
+		.andExpect(jsonPath("$.name").isNotEmpty())
+		.andExpect(jsonPath("$.self_href").isNotEmpty())
+		.andDo(document("checklist-get-checklist-successful",responseFields(
+				fieldWithPath("id").description("id of checklist requested"),
+				fieldWithPath("name").description("name of the checklist"),
+				fieldWithPath("self_href").description("hyperlink to resource")
+				)));
+	}
+	
+	@Test
+	public void testCreatePutChecklistsWithAuthToken() throws Exception {
+		String jwt = jwtService.generateToken("activeuser", "2");
+		
+		MvcResult result = this.mockMvc.perform(
+				post("/api/checklists")
+				.content("{\"name\": \"test list\"}")
+				.header("Authorization", "bearer " + jwt)
+				.contentType(MediaType.APPLICATION_JSON)
+				.accept(MediaType.APPLICATION_JSON)) 
+		.andExpect(status().is(HttpStatus.OK.value()))
+		.andExpect(jsonPath("$.id").isNumber())
+		.andExpect(jsonPath("$.name").isNotEmpty())
+		.andExpect(jsonPath("$.self_href").isNotEmpty())
+		.andReturn();
+		
+		ObjectMapper mapper = new ObjectMapper();
+		ChecklistDto dto = mapper.readValue(result.getResponse().getContentAsString(), ChecklistDto.class);
+		
+		String uri = "/api/checklists/" + dto.getId();
+		
+		LOG.info("action=testCreateUpdateChecklistsWithAuthToken new_id={} uri={}", dto.getId(), uri);
+		
+		this.mockMvc.perform(
+				patch(uri)
+				.content("{\"name\": \"test list!!\"}")
+				.header("Authorization", "bearer " + jwt)
+				.contentType(MediaType.APPLICATION_JSON)
+				.accept(MediaType.APPLICATION_JSON)) 
+		.andExpect(status().is(HttpStatus.OK.value()))
+		.andExpect(jsonPath("$.id").isNumber())
+		.andExpect(jsonPath("$.name").isNotEmpty())
+		.andExpect(jsonPath("$.name", is("test list!!")))
+		.andExpect(jsonPath("$.self_href").isNotEmpty())
+		.andDo(document("checklist-get-checklist-successful",responseFields(
+				fieldWithPath("id").description("id of checklist requested"),
+				fieldWithPath("name").description("name of the checklist"),
+				fieldWithPath("self_href").description("hyperlink to resource")
+				)));
 	}
 	
 	@Test
@@ -123,6 +210,7 @@ public class IntegrationTest {
 		.andExpect(status().is(HttpStatus.OK.value()))
 		.andExpect(jsonPath("$.id").isNotEmpty())
 		.andExpect(jsonPath("$.name", is("test list")))
+		.andExpect(jsonPath("$.self_href").isNotEmpty())
 		.andDo(document("checklist-create-successful",responseFields(
 				fieldWithPath("id").description("id of checklist created"),
 				fieldWithPath("name").description("name of the checklist"),

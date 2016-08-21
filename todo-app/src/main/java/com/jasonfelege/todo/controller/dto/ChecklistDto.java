@@ -1,8 +1,10 @@
 package com.jasonfelege.todo.controller.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.jasonfelege.todo.data.domain.Checklist;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ChecklistDto {
 	private static final String DTO_BASE_PATH = "/api/checklist";
 	
