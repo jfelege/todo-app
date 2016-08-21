@@ -12,9 +12,5 @@ script:
   - cd todo-app
   - jdk_switcher use oraclejdk8
   - ./gradlew check
-
-script:
   - openssl aes-256-cbc -K $encrypted_1fc90f464345_key -iv $encrypted_1fc90f464345_iv -in ${TRAVIS_BUILD_DIR}/travis-scripts/id_rsa.enc -out ${TRAVIS_BUILD_DIR}/travis-scripts/id_rsa -d
   - ${TRAVIS_BUILD_DIR}/travis-scripts/deploy.sh
-  on:
-    branch: master
