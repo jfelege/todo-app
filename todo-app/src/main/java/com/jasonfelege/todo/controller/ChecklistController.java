@@ -244,7 +244,7 @@ public class ChecklistController {
 	
 	@Secured("ROLE_USER")
 	@RequestMapping(path = "/{id}/items/{itemId}", method = RequestMethod.GET)
-	public void createChecklistItem(Authentication auth, @PathVariable long id, @PathVariable long itemId, HttpServletResponse httpServletResponse)
+	public void getChecklistItem(Authentication auth, @PathVariable long id, @PathVariable long itemId, HttpServletResponse httpServletResponse)
 			throws JwtTokenValidationException, IOException {
 	
 		auth = validateAuthentication(auth);
@@ -254,6 +254,18 @@ public class ChecklistController {
 		JsonWebToken token = (JsonWebToken) auth.getPrincipal();
 		AuthenticationDetails authDetails = (AuthenticationDetails) auth.getDetails();
 		final String baseDomain = authDetails.getBaseDomain();
+		
+		User user = validateUser(token.getUserId(), userRepository);
+
+		Checklist list = listService.findById(id).get();
+		
+		long userId = user.getId();
+		long ownerId = list.getOwner().getId();
+		
+		if (ownerId != userId) {
+			LOG.info("action=create_checklist_item id={} owner_id={} user_id={}", id, ownerId, userId);
+			throw new InvalidEntitlementException("entity owned different user");
+		}
 		
 		ItemDto dto = new ItemDto();
 		dto.setBaseDomain(baseDomain);

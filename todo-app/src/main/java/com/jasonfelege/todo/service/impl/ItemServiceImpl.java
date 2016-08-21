@@ -24,4 +24,18 @@ public class ItemServiceImpl implements ItemService {
 	public Item save(Item item) {
 		return itemRepo.save(item);
 	}
+	
+	@Override
+	@Transactional
+	public Item findById(long itemId) {
+		return itemRepo.findOne(itemId);
+	}
+
+	@Override
+	@Transactional
+	public Integer deleteById(long id) {
+		return itemRepo.deleteById(id);
+	}
+	
+	
 }

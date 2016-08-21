@@ -130,3 +130,12 @@ include::{snippets}/item-fetch-successful/http-request.adoc[]
 include::{snippets}/item-fetch-successful/http-response.adoc[]
 
 include::{snippets}/item-fetch-successful/response-fields.adoc[]
+
+[[items-delete]]
+== Delete
+
+include::{snippets}/item-delete-successful/http-request.adoc[]
+
+include::{snippets}/item-delete-successful/http-response.adoc[]
+
+include::{snippets}/item-delete-successful/response-fields.adoc[]

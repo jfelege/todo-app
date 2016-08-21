@@ -311,7 +311,7 @@ public class IntegrationTest {
 		
 		ItemDto itemDto = mapper.readValue(itemResult.getResponse().getContentAsString(), ItemDto.class);
 		
-		MvcResult itemByChecklist = getItemByChecklistId(jwt, dto.getId(), itemDto.getId());
+		getItemByChecklistId(jwt, dto.getId(), itemDto.getId());
 
 	}
 	
@@ -355,6 +355,65 @@ public class IntegrationTest {
 		.andReturn();
 		
 		return result;
+	}
+	
+	private MvcResult deleteItem(String jwt, long itemId) throws Exception {
+		String uri = "/api/items/" + itemId;
+		
+		MvcResult result = this.mockMvc.perform(
+				delete(uri)
+				.contentType(MediaType.APPLICATION_JSON)
+				.header("Authorization", "bearer " + jwt)
+				.accept(MediaType.APPLICATION_JSON)) 
+		.andExpect(status().is(HttpStatus.OK.value()))
+		.andDo(document("item-delete-successful", responseFields(				
+				fieldWithPath("id").description("id of item created")
+				)))
+		.andReturn();
+		return result;
+	}
+	
+	@Test
+	public void testDeleteItem() throws Exception {
+		String jwt = jwtService.generateToken("activeuser", "2");
+
+		MvcResult result = createChecklist(jwt);
+		
+		ChecklistDto dto = mapper.readValue(result.getResponse().getContentAsString(), ChecklistDto.class);
+		
+		LOG.info("action=test_delete_item checklistId={} name={}", dto.getId(), dto.getName());
+		
+		MvcResult result2 = createItem(jwt, dto.getId());
+		
+		ItemDto itemDto = mapper.readValue(result2.getResponse().getContentAsString(), ItemDto.class);
+		
+		LOG.info("action=delete_item checklistId={} itemId={}", dto.getId(), itemDto.getId());
+		
+		deleteItem(jwt, itemDto.getId());
+	}
+	
+	@Test
+	public void testNonOwnedDeleteItem() throws Exception {
+		String jwt1 = jwtService.generateToken("activeuser", "2");
+		String jwt2 = jwtService.generateToken("activeuser2", "3");
+		
+		MvcResult result = createChecklist(jwt1);
+		
+		ChecklistDto dto = mapper.readValue(result.getResponse().getContentAsString(), ChecklistDto.class);
+		
+		MvcResult result2 = createItem(jwt1, dto.getId());
+		
+		ItemDto itemDto = mapper.readValue(result2.getResponse().getContentAsString(), ItemDto.class);
+		
+		String uri = "/api/items/" + itemDto.getId();
+		
+		this.mockMvc.perform(
+				delete(uri)
+				.contentType(MediaType.APPLICATION_JSON)
+				.header("Authorization", "bearer " + jwt2)
+				.accept(MediaType.APPLICATION_JSON)) 
+		.andExpect(status().is(HttpStatus.UNAUTHORIZED.value()));
+		
 	}
 	
 	private MvcResult createItem(String jwt, long checklistId, String json) throws Exception {

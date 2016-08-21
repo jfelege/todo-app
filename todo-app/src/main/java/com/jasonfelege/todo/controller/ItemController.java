@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jasonfelege.todo.controller.dto.ItemDto;
-import com.jasonfelege.todo.data.ItemRepository;
 import com.jasonfelege.todo.data.UserRepository;
 import com.jasonfelege.todo.data.domain.Checklist;
 import com.jasonfelege.todo.data.domain.Item;
@@ -25,6 +24,7 @@ import com.jasonfelege.todo.exceptions.JwtTokenValidationException;
 import com.jasonfelege.todo.security.AuthenticationDetails;
 import com.jasonfelege.todo.security.JsonWebToken;
 import com.jasonfelege.todo.service.ChecklistService;
+import com.jasonfelege.todo.service.ItemService;
 
 @RestController
 @RequestMapping("/api/items")
@@ -33,12 +33,12 @@ public class ItemController {
 
 	private final ChecklistService listService;
 	private final UserRepository userRepository;
-	private final ItemRepository itemRepository;
+	private final ItemService itemService;
 
-	public ItemController(ChecklistService listService, ItemRepository itemRepository, UserRepository userRepository) {
+	public ItemController(ChecklistService listService, ItemService itemService, UserRepository userRepository) {
 		this.listService = listService;
 		this.userRepository = userRepository;
-		this.itemRepository = itemRepository;
+		this.itemService = itemService;
 	}
 	
 	@Secured("ROLE_USER")
@@ -56,7 +56,7 @@ public class ItemController {
 
 		User user = validateUser(token.getUserId(), userRepository);
 		
-		Item item = itemRepository.findOne(id);
+		Item item = itemService.findById(id);
 		Checklist list = item.getChecklist();
 		
 		long userId = user.getId();
@@ -70,5 +70,47 @@ public class ItemController {
 		ItemDto dto = ItemDto.fromEntity(item, baseDomain);
 		
 		return dto;
+	}
+	
+	@Secured("ROLE_USER")
+	@RequestMapping(path="/{id}", method = RequestMethod.DELETE)
+	public ItemDeleted deleteItem(Authentication auth, @PathVariable long id)
+			throws JwtTokenValidationException, JsonProcessingException {
+
+		auth = validateAuthentication(auth);
+		
+		LOG.info("action=delete_item auth={} id={}", auth, id);
+
+		JsonWebToken token = (JsonWebToken) auth.getPrincipal();
+		AuthenticationDetails authDetails = (AuthenticationDetails) auth.getDetails();
+
+		User user = validateUser(token.getUserId(), userRepository);
+		
+		Item item = itemService.findById(id);
+		
+		LOG.info("action=delete_item id={} itemId={} checklist_null={}", id, item.getId(), (item.getChecklist()==null ? true : false));
+		
+		Checklist list = listService.findById(item.getChecklist().getId()).get();
+		
+		long userId = user.getId();
+		long ownerId = list.getOwner().getId();
+		
+		LOG.info("action=delete_item itemId={} checklistId={} id={} owner_id={} user_id={}", item.getId(), list.getId(), id, ownerId, userId);
+		
+		if (ownerId != userId) {
+			LOG.info("action=delete_item id={} owner_id={} user_id={}", id, ownerId, userId);
+			throw new InvalidEntitlementException("entity owned different user");
+		}
+
+		long deletedId = itemService.deleteById(item.getId());
+		
+		ItemDeleted dto = new ItemDeleted();
+		dto.id = deletedId;
+		
+		return dto;
+	}
+	
+	class ItemDeleted {
+		public long id;
 	}
 }
