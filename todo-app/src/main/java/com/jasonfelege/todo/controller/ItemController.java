@@ -122,7 +122,6 @@ public class ItemController {
 		LOG.info("action=delete_item auth={} id={}", auth, id);
 
 		JsonWebToken token = (JsonWebToken) auth.getPrincipal();
-		AuthenticationDetails authDetails = (AuthenticationDetails) auth.getDetails();
 
 		User user = validateUser(token.getUserId(), userRepository);
 
