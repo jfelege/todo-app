@@ -131,6 +131,15 @@ include::{snippets}/item-fetch-successful/http-response.adoc[]
 
 include::{snippets}/item-fetch-successful/response-fields.adoc[]
 
+[[items-update]]
+== Update
+
+include::{snippets}/item-update-successful/http-request.adoc[]
+
+include::{snippets}/item-update-successful/http-response.adoc[]
+
+include::{snippets}/item-update-successful/response-fields.adoc[]
+
 [[items-delete]]
 == Delete
 

@@ -1,6 +1,7 @@
 package com.jasonfelege.todo;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
@@ -10,6 +11,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -536,5 +538,52 @@ public class IntegrationTest {
 		.andReturn();
 		
 		return result;
+	}
+	
+	
+	public MvcResult updateItem(String jwt, long itemId, String json) throws Exception {
+		
+		MvcResult result = this.mockMvc.perform(
+				put("/api/items/" + itemId)
+				.content(json)
+				.contentType(MediaType.APPLICATION_JSON)
+				.header("Authorization", "bearer " + jwt)
+				.accept(MediaType.APPLICATION_JSON)) 
+		.andExpect(status().is(HttpStatus.OK.value()))
+		.andExpect(jsonPath("$.id").isNotEmpty())
+		.andExpect(jsonPath("$.name").isNotEmpty())
+		.andExpect(jsonPath("$.self_href").isNotEmpty())
+		.andDo(document("item-update-successful", responseFields(				
+				fieldWithPath("id").description("id of item updated"),
+				fieldWithPath("name").description("name of the item"),
+				fieldWithPath("complete").description("whether the item is completed"),
+				fieldWithPath("checklist_href").description("hyperlink to checklist"),
+				fieldWithPath("self_href").description("hyperlink to resource"))))
+		.andReturn();
+		
+		return result;
+	}
+	
+	
+	@Test
+	public void testUpdateItemWithAuthToken() throws Exception {
+		
+		String jwt = jwtService.generateToken("activeuser", "2");
+
+		MvcResult result = createChecklist(jwt);
+		
+		ChecklistDto dto = mapper.readValue(result.getResponse().getContentAsString(), ChecklistDto.class);
+
+		MvcResult newItemResult = createItem(jwt, dto.getId(), "{\"name\": \"test item1\", \"complete\": \"false\"}");
+		
+		ItemDto newItemDto = mapper.readValue(newItemResult.getResponse().getContentAsString(), ItemDto.class);
+
+		updateItem(jwt, newItemDto.getId(), "{\"name\": \"updated item\", \"complete\": \"false\"}");
+		
+		MvcResult updatedResult = getItemById(jwt, newItemDto.getId());
+		
+		ItemDto updatedDto = mapper.readValue(updatedResult.getResponse().getContentAsString(), ItemDto.class);
+
+		assertEquals(updatedDto.getName(), "updated item");
 	}
 }

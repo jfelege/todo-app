@@ -10,6 +10,8 @@ public interface ItemRepository extends CrudRepository<Item, Long> {
 
 	List<Item> findByChecklistId(long checklistId);
 
+	Item findById(long itemId);
+	
 	Integer deleteById(long id);
 	
 }
