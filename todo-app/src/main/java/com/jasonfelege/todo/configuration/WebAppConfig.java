@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -24,6 +25,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import com.jasonfelege.todo.data.ChecklistRepository;
 import com.jasonfelege.todo.data.ItemRepository;
 import com.jasonfelege.todo.data.UserRepository;
+import com.jasonfelege.todo.logging.LogEvent;
+import com.jasonfelege.todo.logging.LogEventFactory;
+import com.jasonfelege.todo.logging.LogEventImpl;
 import com.jasonfelege.todo.security.AuthenticationFilter;
 import com.jasonfelege.todo.security.TokenAuthenticationProvider;
 import com.jasonfelege.todo.security.userdetails.CustomUserDetailsService;
@@ -39,7 +43,6 @@ import com.jasonfelege.todo.service.impl.JsonWebTokenServiceImpl;
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
 public class WebAppConfig extends WebSecurityConfigurerAdapter {
-	private static final Logger LOG = LoggerFactory.getLogger(WebAppConfig.class);
 	
 	@Value("${jwt.secret}")
 	private String jwtTokenSecret;
@@ -52,9 +55,18 @@ public class WebAppConfig extends WebSecurityConfigurerAdapter {
 
 	
 	@Bean
+	@Scope("prototype")
+	public LogEvent logEvent(String eventName) {
+		return new LogEventImpl(eventName);
+	}
+	
+	@Bean
+	public LogEventFactory getLogEventFactory() {
+		return new LogEventFactory(this.getApplicationContext());
+	}
+	
+	@Bean
 	public JsonWebTokenService jsonWebTokenService() {
-		LOG.info("getJsonWebTokenService {} {} {}", jwtTokenSecret, appDomain, jwtExpiration);
-		
 		return new JsonWebTokenServiceImpl(jwtTokenSecret, appDomain, jwtExpiration);
 	}
 	
@@ -65,7 +77,6 @@ public class WebAppConfig extends WebSecurityConfigurerAdapter {
 	        .antMatchers("/api/auth/token")
 	        .antMatchers("/favicon.ico");
 	}
-	
 	
 	@Override
 	public void configure(HttpSecurity http) throws Exception {
