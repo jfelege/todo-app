@@ -62,7 +62,8 @@ public class WebAppConfig extends WebSecurityConfigurerAdapter {
 	public void configure(WebSecurity web) throws Exception {
 	    web
 	      .ignoring()
-	        .antMatchers("/api/auth/token");
+	        .antMatchers("/api/auth/token")
+	        .antMatchers("/favicon.ico");
 	}
 	
 	
