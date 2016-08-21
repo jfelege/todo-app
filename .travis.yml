@@ -10,4 +10,5 @@ cache:
 
 script:
   - cd todo-app
+  - jdk_switcher use oraclejdk8
   - ./gradlew check
