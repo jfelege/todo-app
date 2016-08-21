@@ -58,9 +58,9 @@ The following are the API calls to create and manage your checklists.
 [[checklists-list]]
 == Checklists: List
 
-include::{snippets}/checklist-list-succesful/http-request.adoc[]
+include::{snippets}/checklist-list-successful/http-request.adoc[]
 
-include::{snippets}/checklist-list-succesful/http-response.adoc[]
+include::{snippets}/checklist-list-successful/http-response.adoc[]
 
 [[checklists-create]]
 == Checklists: Create
