@@ -11,7 +11,7 @@ cache:
 script:
   - cd todo-app
   - jdk_switcher use oraclejdk8
-  - ./gradlew check
+  - ./gradlew assemble
   - echo ${TRAVIS_BUILD_DIR}
   - cd ..
   - echo ${TRAVIS_BUILD_DIR}
