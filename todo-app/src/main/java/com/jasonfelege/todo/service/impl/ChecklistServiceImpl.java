@@ -23,6 +23,16 @@ public class ChecklistServiceImpl implements ChecklistService {
 	}
 	
 	@Transactional
+	public Optional<Checklist> findById(long id) {
+		return checklistRepo.findById(id);
+	}
+	
+	@Transactional
+	public Optional<Integer> deleteById(long id) {
+		return checklistRepo.deleteById(id);
+	}
+	
+	@Transactional
 	public Checklist save(Checklist checklist) {
 		return checklistRepo.save(checklist);
 	}
