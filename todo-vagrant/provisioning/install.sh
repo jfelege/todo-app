@@ -26,6 +26,8 @@ sudo docker run hello-world
 # docker engine to start on boot
 sudo chkconfig docker on
 
+sudo docker run --restart=always -p 9411:9411 --name zipkin -d openzipkin/zipkin
+
 sudo docker run --net="host" --restart=always -p 80:80 --name nginx --volume /host_docker-nginx/nginx.conf:/etc/nginx/nginx.conf:ro  --volume /host_todo-app/build/asciidoc/html5:/etc/nginx/app/apidocs -d nginx
 
 # sudo docker run -it nginx /bin/bash
