@@ -1,5 +1,5 @@
 = todo-app API Guide
-Jason Felege;
+;
 :doctype: book
 :icons: font
 :source-highlighter: highlightjs
@@ -20,16 +20,16 @@ use of HTTP verbs.
 | Verb | Usage
 
 | `GET`
-| Used to retrieve a resource
+| Used for retrieving resources.
 
 | `POST`
-| Used to create a new resource
+| Used for creating resources.
 
 | `PATCH`
-| Used to update an existing resource, including partial updates
+| Used for replacing resources or collections.
 
 | `DELETE`
-| Used to delete an existing resource
+| Used for deleting resources.
 |===
 
 [[overview-http-status-codes]]
@@ -37,26 +37,6 @@ use of HTTP verbs.
 
 RESTful notes tries to adhere as closely as possible to standard HTTP and REST conventions in its
 use of HTTP status codes.
-
-|===
-| Status code | Usage
-
-| `200 OK`
-| The request completed successfully
-
-| `201 Created`
-| A new resource has been created successfully. The resource's URI is available from the response's
-`Location` header
-
-| `204 No Content`
-| An update to an existing resource has been applied successfully
-
-| `400 Bad Request`
-| The request was malformed. The response body will include an error providing further information
-
-| `404 Not Found`
-| The requested resource did not exist
-|===
 
 [[authorization]]
 = Authorization
@@ -73,12 +53,19 @@ include::{snippets}/token-successful/http-response.adoc[]
 [[checklists]]
 = Checklists
 
-[[checklists-create]]
-== Checklists: Create
-
 The following are the API calls to create and manage your checklists.
 
-include::{snippets}/checklist-create-successful/response-fields.adoc[]
+[[checklists-list]]
+== Checklists: List
+
+include::{snippets}/checklist-list-succesful/http-request.adoc[]
+
+include::{snippets}/checklist-list-succesful/http-response.adoc[]
+
+include::{snippets}/checklist-list-succesful/response-fields.adoc[]
+
+[[checklists-create]]
+== Checklists: Create
 
 include::{snippets}/checklist-create-successful/http-request.adoc[]
 
@@ -86,12 +73,18 @@ include::{snippets}/checklist-create-successful/http-response.adoc[]
 
 include::{snippets}/checklist-create-successful/response-fields.adoc[]
 
+[[checklists-fetch]]
+== Checklists: View
+
+include::{snippets}/checklist-get-checklist-successful/http-request.adoc[]
+
+include::{snippets}/checklist-get-checklist-successful/http-response.adoc[]
+
+include::{snippets}/checklist-get-checklist-successful/response-fields.adoc[]
+
+
 [[checklists-delete]]
-== Checklists: delete
-
-The following are the API calls to create and manage your checklists.
-
-include::{snippets}/checklist-delete-successful/response-fields.adoc[]
+== Checklists: Delete
 
 include::{snippets}/checklist-delete-successful/http-request.adoc[]
 
