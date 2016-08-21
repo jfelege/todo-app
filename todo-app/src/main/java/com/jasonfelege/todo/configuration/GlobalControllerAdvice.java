@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -33,84 +34,58 @@ public class GlobalControllerAdvice {
 	@ExceptionHandler(InvalidEntitlementException.class)
 	@ResponseBody
 	public ResponseEntity<?> handleInvalidEntitlementException(HttpServletRequest req, Exception e) {
-		LOGGER.error(e.getMessage(), e);
-
-		if (disableStackTrace) {
-			e = (Exception) new NonExposingException("unauthorized");
-		}
-
-		return new ResponseEntity<>(e, HttpStatus.UNAUTHORIZED);
+		return handleException(e, "unauthorized", HttpStatus.UNAUTHORIZED);
 	}
 
 	@ExceptionHandler(EntityNotFoundException.class)
 	@ResponseBody
 	public ResponseEntity<?> handleEntityNotFoundException(HttpServletRequest req, Exception e) {
-		LOGGER.error(e.getMessage(), e);
-
-		if (disableStackTrace) {
-			e = (Exception) new NonExposingException("not found");
-		}
-
-		return new ResponseEntity<>(e, HttpStatus.NOT_FOUND);
+		return handleException(e, "resource not found", HttpStatus.NOT_FOUND);
 	}
 	
 	@ExceptionHandler(UserNotFoundException.class)
 	@ResponseBody
 	public ResponseEntity<?> handleUserNotFoundException(HttpServletRequest req, Exception e) {
-		LOGGER.error(e.getMessage(), e);
-
-		if (disableStackTrace) {
-			e = (Exception) new NonExposingException("user not found");
-		}
-
-		return new ResponseEntity<>(e, HttpStatus.UNAUTHORIZED);
+		return handleException(e, "user not found", HttpStatus.UNAUTHORIZED);
 	}
 	
 	@ExceptionHandler(AuthenticationException.class)
 	@ResponseBody
 	public ResponseEntity<?> handleAuthenticationException(HttpServletRequest req, Exception e) {
-		LOGGER.error(e.getMessage(), e);
-
-		if (disableStackTrace) {
-			e = (Exception) new NonExposingException("unable to authenticate credentials");
-		}
-
-		return new ResponseEntity<>(e, HttpStatus.UNAUTHORIZED);
+		return handleException(e, "unable to authenticate credentials", HttpStatus.UNAUTHORIZED);
 	}
 
 	@ExceptionHandler(JwtTokenValidationException.class)
 	@ResponseBody
 	public ResponseEntity<?> handleNotFoundException(HttpServletRequest req, Exception e) {
-		LOGGER.error(e.getMessage(), e);
-
-		if (disableStackTrace) {
-			e = (Exception) new NonExposingException("unable to verify jwt token");
-		}
-
-		return new ResponseEntity<>(e, HttpStatus.FORBIDDEN);
+		return handleException(e, "unable to verify jwt token", HttpStatus.FORBIDDEN);
 	}
 
 	@ExceptionHandler(IOException.class)
 	@ResponseBody
 	public ResponseEntity<?> handleIOException(HttpServletRequest req, Exception e) {
-		LOGGER.error(e.getMessage(), e);
+		return handleException(e, "internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+	}
 
-		if (disableStackTrace) {
-			e = (Exception) new NonExposingException("internal server error");
-		}
-
-		return new ResponseEntity<>(e, HttpStatus.INTERNAL_SERVER_ERROR);
+	@ExceptionHandler(MissingServletRequestParameterException.class)
+	@ResponseBody
+	public ResponseEntity<?> handleMissingServletRequestParameterException(HttpServletRequest req, Exception e) {
+		return handleException(e, "missing request parameter", HttpStatus.BAD_REQUEST);
 	}
 
 	@ExceptionHandler
 	@ResponseBody
 	public ResponseEntity<?> handleException(HttpServletRequest req, Exception e) {
+		return handleException(e, "internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+	
+	private ResponseEntity<?> handleException(Exception e, String message, HttpStatus status) {
 		LOGGER.error(e.getMessage(), e);
 
 		if (disableStackTrace) {
-			e = (Exception) new NonExposingException("internal server error");
+			e = (Exception) new NonExposingException(message);
 		}
 
-		return new ResponseEntity<>(e, HttpStatus.INTERNAL_SERVER_ERROR);
+		return new ResponseEntity<>(e, status);
 	}
 }
