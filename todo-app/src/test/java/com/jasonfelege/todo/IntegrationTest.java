@@ -44,6 +44,7 @@ import com.jasonfelege.todo.service.JsonWebTokenService;
 @ActiveProfiles("int-test")
 public class IntegrationTest {
 	private static final Logger LOG = LoggerFactory.getLogger(IntegrationTest.class);
+	private static final ObjectMapper mapper = new ObjectMapper();
 	
 	@Rule
 	public JUnitRestDocumentation restDocumentation = new JUnitRestDocumentation("build/generated-snippets");
@@ -116,7 +117,7 @@ public class IntegrationTest {
 				.header("Authorization", "bearer " + jwt)
 				.accept(MediaType.APPLICATION_JSON)) 
 		.andExpect(status().is(HttpStatus.OK.value()))
-		.andDo(document("checklist-list-succesful"));
+		.andDo(document("checklist-list-successful"));
 	}
 	
 	@Test
@@ -201,30 +202,27 @@ public class IntegrationTest {
 	@Test
 	public void testCreateChecklistWithAuthToken() throws Exception {
 		String jwt = jwtService.generateToken("activeuser", "2");
-		
-		this.mockMvc.perform(
-				post("/api/checklists")
-				.content("{\"name\": \"test list\"}")
-				.contentType(MediaType.APPLICATION_JSON)
-				.header("Authorization", "bearer " + jwt)
-				.accept(MediaType.APPLICATION_JSON)) 
-		.andExpect(status().is(HttpStatus.OK.value()))
-		.andExpect(jsonPath("$.id").isNotEmpty())
-		.andExpect(jsonPath("$.name", is("test list")))
-		.andExpect(jsonPath("$.self_href").isNotEmpty())
-		.andDo(document("checklist-create-successful",responseFields(
-				fieldWithPath("id").description("id of checklist created"),
-				fieldWithPath("name").description("name of the checklist"),
-				fieldWithPath("self_href").description("hyperlink to resource")
-				)));
+		createChecklist(jwt, "{\"name\": \"test list\"}");
 	}
+	
+
 	
 	@Test
 	public void testDeleteChecklistWithAuthToken() throws Exception {
 		String jwt = jwtService.generateToken("activeuser", "2");
 		
-		this.mockMvc.perform(
-				delete("/api/checklists/1")
+		MvcResult result = createChecklist(jwt);
+		
+		ChecklistDto dto = mapper.readValue(result.getResponse().getContentAsString(), ChecklistDto.class);
+
+		deleteChecklist(jwt, dto.getId());
+	}
+	
+	private MvcResult deleteChecklist(String jwt, long checklistId) throws Exception {
+		String uri = "/api/checklists/" + checklistId;
+		
+		MvcResult result = this.mockMvc.perform(
+				delete(uri)
 				.contentType(MediaType.APPLICATION_JSON)
 				.header("Authorization", "bearer " + jwt)
 				.accept(MediaType.APPLICATION_JSON)) 
@@ -232,25 +230,23 @@ public class IntegrationTest {
 		.andExpect(jsonPath("$.id").isNotEmpty())
 		.andDo(document("checklist-delete-successful",responseFields(
 				fieldWithPath("id").description("id of checklist deleted")
-				)));
+				)))
+		.andReturn();
+		
+		return result;
 	}
 	
-	
-	/*
-	 * This test needs improvement of proper setup prior to deletion.
-	 * @Test
+	@Test
 	public void testDeleteNonOwnedChecklistWithAuthToken() throws Exception {
-		String jwt = jwtService.generateToken("activeuser2", "3");
-
-		testCreateChecklistWithAuthToken();
+		String jwt1 = jwtService.generateToken("activeuser", "2");
+		String jwt2 = jwtService.generateToken("activeuser2", "3");
 		
-		this.mockMvc.perform(
-				delete("/api/checklists/2")
-				.header("Authorization", "bearer " + jwt)
-				.accept(MediaType.APPLICATION_JSON)) 
-		.andExpect(status().is(HttpStatus.UNAUTHORIZED.value()))
-		.andDo(document("checklist-delete-nonowned-attempted"));
-	}*/
+		MvcResult result = createChecklist(jwt1);
+		
+		ChecklistDto dto = mapper.readValue(result.getResponse().getContentAsString(), ChecklistDto.class);
+		
+		deleteChecklist(jwt2, dto.getId());
+	}
 	
 	@Test
 	public void testDeleteExistantChecklistWithAuthToken() throws Exception {
@@ -276,34 +272,81 @@ public class IntegrationTest {
 		.andDo(document("checklist-delete-nonexistant"));
 	}
 	
+
+	
+	@Test
+	public void testCreateChecklistGetItemWithAuthToken() throws Exception {
+		String jwt = jwtService.generateToken("activeuser", "2");
+
+		MvcResult result = createChecklist(jwt);
+		
+		ChecklistDto dto = mapper.readValue(result.getResponse().getContentAsString(), ChecklistDto.class);
+
+		MvcResult itemResult = createItem(jwt, dto.getId());
+		
+		ItemDto itemDto = mapper.readValue(itemResult.getResponse().getContentAsString(), ItemDto.class);
+		
+		getItemById(jwt, itemDto.getId());
+	}
+	
 	
 	@Test
 	public void testCreateGetChecklistItemsWithAuthToken() throws Exception {
 		String jwt = jwtService.generateToken("activeuser", "2");
 
-		// create a checklist
+		MvcResult result = createChecklist(jwt);
+		
+		ChecklistDto dto = mapper.readValue(result.getResponse().getContentAsString(), ChecklistDto.class);
+
+		MvcResult itemResult = createItem(jwt, dto.getId());
+		
+		ItemDto itemDto = mapper.readValue(itemResult.getResponse().getContentAsString(), ItemDto.class);
+		
+		MvcResult itemByChecklist = getItemByChecklistId(jwt, dto.getId(), itemDto.getId());
+
+	}
+	
+	private MvcResult getItemById(String jwt, long itemId) throws Exception {
+		String itemUri = "/api/items/" + itemId;
+		
+		// check if the item exists
 		MvcResult result = this.mockMvc.perform(
-				post("/api/checklists")
-				.content("{\"name\": \"test list\"}")
+				get(itemUri)
 				.header("Authorization", "bearer " + jwt)
-				.contentType(MediaType.APPLICATION_JSON)
 				.accept(MediaType.APPLICATION_JSON)) 
+		.andExpect(status().is(HttpStatus.OK.value()))
 		.andExpect(status().is(HttpStatus.OK.value()))
 		.andExpect(jsonPath("$.id").isNumber())
 		.andExpect(jsonPath("$.name").isNotEmpty())
+		.andExpect(jsonPath("$.complete").isBoolean())
+		.andExpect(jsonPath("$.checklist_href").isNotEmpty())
 		.andExpect(jsonPath("$.self_href").isNotEmpty())
+		.andDo(document("item-fetch-successful"))
 		.andReturn();
 		
-		ObjectMapper mapper = new ObjectMapper();
-		ChecklistDto dto = mapper.readValue(result.getResponse().getContentAsString(), ChecklistDto.class);
+		return result;
+	}
+	
+	private MvcResult getItemByChecklistId(String jwt, long checklistId, long itemId) throws Exception {
+		String itemUri = "/api/checklists/" + checklistId + "/items/" + itemId;
 		
+		// check if the item exists
+		MvcResult result = this.mockMvc.perform(
+				get(itemUri)
+				.header("Authorization", "bearer " + jwt)
+				.accept(MediaType.APPLICATION_JSON)) 
+		.andExpect(status().is(HttpStatus.MOVED_PERMANENTLY.value()))
+		.andDo(document("checklist-getitem-successful"))
+		.andReturn();
 		
-		String itemsUri = "/api/checklists/" + dto.getId() + "/items";
-		LOG.info("action=testCreateGetChecklistItemsWithAuthToken new_id={} uri={}", dto.getId(), itemsUri);
+		return result;
+	}
+	
+	private MvcResult createItem(String jwt, long checklistId) throws Exception {
+		// create a item in checklist
+		String itemsUri = "/api/checklists/" + checklistId + "/items";
 		
-
-		// create a item
-		MvcResult itemResult = this.mockMvc.perform(
+		MvcResult result = this.mockMvc.perform(
 				post(itemsUri)
 				.content("{\"name\": \"test list\", \"complete\": \"false\"}")
 				.header("Authorization", "bearer " + jwt)
@@ -315,26 +358,48 @@ public class IntegrationTest {
 		.andExpect(jsonPath("$.complete").isBoolean())
 		.andExpect(jsonPath("$.checklist_href").isNotEmpty())
 		.andExpect(jsonPath("$.self_href").isNotEmpty())
+		.andDo(document("checklist-createitem-successful"))
 		.andReturn();
 		
-		ItemDto itemDto = mapper.readValue(itemResult.getResponse().getContentAsString(), ItemDto.class);
+		return result;
+	}
+	
+	private MvcResult createChecklist(String jwt) throws Exception {
 		
-		String itemUri = "/api/checklists/" + dto.getId() + "/items/" + itemDto.getId();
+		MvcResult result = this.mockMvc.perform(
+				post("/api/checklists")
+				.content("{\"name\": \"test list\"}")
+				.header("Authorization", "bearer " + jwt)
+				.contentType(MediaType.APPLICATION_JSON)
+				.accept(MediaType.APPLICATION_JSON)) 
+		.andExpect(status().is(HttpStatus.OK.value()))
+		.andExpect(jsonPath("$.id").isNumber())
+		.andExpect(jsonPath("$.name").isNotEmpty())
+		.andExpect(jsonPath("$.self_href").isNotEmpty())
+		.andDo(document("checklist-create-successful"))
+		.andReturn();
 		
-		// check if the item exists
-		this.mockMvc.perform(
-				get(itemUri)
+		return result;
+	}
+	
+	private MvcResult createChecklist(String jwt, String json) throws Exception {
+		MvcResult result = this.mockMvc.perform(
+				post("/api/checklists")
+				.content(json)
+				.contentType(MediaType.APPLICATION_JSON)
 				.header("Authorization", "bearer " + jwt)
 				.accept(MediaType.APPLICATION_JSON)) 
 		.andExpect(status().is(HttpStatus.OK.value()))
-		.andExpect(status().is(HttpStatus.OK.value()))
-		.andExpect(jsonPath("$.id").isNumber())
-		.andExpect(jsonPath("$.id", is(itemDto.getId())))
+		.andExpect(jsonPath("$.id").isNotEmpty())
 		.andExpect(jsonPath("$.name").isNotEmpty())
-		.andExpect(jsonPath("$.name", is(itemDto.getName())))
-		.andExpect(jsonPath("$.complete").isBoolean())
-		.andExpect(jsonPath("$.checklist_href").isNotEmpty())
 		.andExpect(jsonPath("$.self_href").isNotEmpty())
-		.andDo(document("checklist-getitem-successful"));
+		.andDo(document("checklist-create-successful",responseFields(
+				fieldWithPath("id").description("id of checklist created"),
+				fieldWithPath("name").description("name of the checklist"),
+				fieldWithPath("self_href").description("hyperlink to resource")
+				)))
+		.andReturn();
+		
+		return result;
 	}
 }
