@@ -1,6 +1,8 @@
 # todo-app
 
-![travisci](https://travis-ci.org/jfelege/todo-app.svg?branch=master)
+[![travisci](https://travis-ci.org/jfelege/todo-app.svg?branch=master)](https://travis-ci.org/jfelege/todo-app)
+
+
 
 This project contains an example implementation of a REST API service to manage tasks and todo lists using SpringBoot, Vagrant.
 
