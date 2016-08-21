@@ -117,7 +117,9 @@ public class IntegrationTest {
 				.header("Authorization", "bearer " + jwt)
 				.accept(MediaType.APPLICATION_JSON)) 
 		.andExpect(status().is(HttpStatus.OK.value()))
-		.andDo(document("checklist-list-successful"));
+		.andDo(document("checklist-list-successful", responseFields(
+				fieldWithPath("lists").description("array of checklists"))
+				));
 	}
 	
 	@Test
@@ -192,7 +194,7 @@ public class IntegrationTest {
 		.andExpect(jsonPath("$.name").isNotEmpty())
 		.andExpect(jsonPath("$.name", is("test list!!")))
 		.andExpect(jsonPath("$.self_href").isNotEmpty())
-		.andDo(document("checklist-get-checklist-successful",responseFields(
+		.andDo(document("checklist-patch-successful",responseFields(
 				fieldWithPath("id").description("id of checklist requested"),
 				fieldWithPath("name").description("name of the checklist"),
 				fieldWithPath("self_href").description("hyperlink to resource")
@@ -245,7 +247,14 @@ public class IntegrationTest {
 		
 		ChecklistDto dto = mapper.readValue(result.getResponse().getContentAsString(), ChecklistDto.class);
 		
-		deleteChecklist(jwt2, dto.getId());
+		String uri = "/api/checklists/" + dto.getId();
+		
+		this.mockMvc.perform(
+				delete(uri)
+				.contentType(MediaType.APPLICATION_JSON)
+				.header("Authorization", "bearer " + jwt2)
+				.accept(MediaType.APPLICATION_JSON)) 
+		.andExpect(status().is(HttpStatus.UNAUTHORIZED.value()));
 	}
 	
 	@Test
@@ -321,7 +330,13 @@ public class IntegrationTest {
 		.andExpect(jsonPath("$.complete").isBoolean())
 		.andExpect(jsonPath("$.checklist_href").isNotEmpty())
 		.andExpect(jsonPath("$.self_href").isNotEmpty())
-		.andDo(document("item-fetch-successful"))
+		.andDo(document("item-fetch-successful",responseFields(
+				fieldWithPath("id").description("id of item"),
+				fieldWithPath("name").description("name of the item"),
+				fieldWithPath("complete").description("whether the item is completed"),
+				fieldWithPath("checklist_href").description("hyperlink to checklist"),
+				fieldWithPath("self_href").description("hyperlink to resource")
+				)))
 		.andReturn();
 		
 		return result;
@@ -337,6 +352,27 @@ public class IntegrationTest {
 				.accept(MediaType.APPLICATION_JSON)) 
 		.andExpect(status().is(HttpStatus.MOVED_PERMANENTLY.value()))
 		.andDo(document("checklist-getitem-successful"))
+		.andReturn();
+		
+		return result;
+	}
+	
+	private MvcResult createItem(String jwt, long checklistId, String json) throws Exception {
+		// create a item in checklist
+		String itemsUri = "/api/checklists/" + checklistId + "/items";
+		
+		MvcResult result = this.mockMvc.perform(
+				post(itemsUri)
+				.content(json)
+				.header("Authorization", "bearer " + jwt)
+				.contentType(MediaType.APPLICATION_JSON)
+				.accept(MediaType.APPLICATION_JSON)) 
+		.andExpect(status().is(HttpStatus.OK.value()))
+		.andExpect(jsonPath("$.id").isNumber())
+		.andExpect(jsonPath("$.name").isNotEmpty())
+		.andExpect(jsonPath("$.complete").isBoolean())
+		.andExpect(jsonPath("$.checklist_href").isNotEmpty())
+		.andExpect(jsonPath("$.self_href").isNotEmpty())
 		.andReturn();
 		
 		return result;
@@ -358,7 +394,47 @@ public class IntegrationTest {
 		.andExpect(jsonPath("$.complete").isBoolean())
 		.andExpect(jsonPath("$.checklist_href").isNotEmpty())
 		.andExpect(jsonPath("$.self_href").isNotEmpty())
-		.andDo(document("checklist-createitem-successful"))
+		.andDo(document("checklist-createitem-successful", responseFields(				
+				fieldWithPath("id").description("id of item created"),
+				fieldWithPath("name").description("name of the item"),
+				fieldWithPath("complete").description("whether the item is completed"),
+				fieldWithPath("checklist_href").description("hyperlink to checklist"),
+				fieldWithPath("self_href").description("hyperlink to resource"))))
+		.andReturn();
+		
+		return result;
+	}
+
+	@Test
+	public void testGetItemsByChecklistWithAuthToken() throws Exception {
+		
+		String jwt = jwtService.generateToken("activeuser", "2");
+
+		MvcResult result = createChecklist(jwt);
+		
+		ChecklistDto dto = mapper.readValue(result.getResponse().getContentAsString(), ChecklistDto.class);
+
+		createItem(jwt, dto.getId(), "{\"name\": \"test item1\", \"complete\": \"false\"}");
+		
+		createItem(jwt, dto.getId(), "{\"name\": \"test item2\", \"complete\": \"true\"}");
+		
+		createItem(jwt, dto.getId(), "{\"name\": \"test item3\", \"complete\": \"false\"}");
+		
+		getItemByChecklist(jwt, dto.getId());
+	}
+	
+	private MvcResult getItemByChecklist(String jwt, long checklistId) throws Exception {
+		// create a item in checklist
+		String itemsUri = "/api/checklists/" + checklistId + "/items";
+		
+		MvcResult result = this.mockMvc.perform(
+				get(itemsUri)
+				.header("Authorization", "bearer " + jwt)
+				.accept(MediaType.APPLICATION_JSON)) 
+		.andExpect(status().is(HttpStatus.OK.value()))
+		.andExpect(jsonPath("$.items").isArray())
+		.andDo(document("checklist-listitems-successful", responseFields(				
+				fieldWithPath("items").description("array of items"))))
 		.andReturn();
 		
 		return result;
