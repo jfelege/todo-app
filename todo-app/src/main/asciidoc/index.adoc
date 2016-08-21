@@ -62,8 +62,6 @@ include::{snippets}/checklist-list-succesful/http-request.adoc[]
 
 include::{snippets}/checklist-list-succesful/http-response.adoc[]
 
-include::{snippets}/checklist-list-succesful/response-fields.adoc[]
-
 [[checklists-create]]
 == Checklists: Create
 
