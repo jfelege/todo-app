@@ -67,7 +67,7 @@ public class ItemDto {
 	public String getChecklistHref() {
 		if (baseDomain == null)
 			throw new IllegalStateException("baseDomain was never set");
-		return baseDomain + DTO_CHECKLIST_BASE_PATH + "/" + checklistId + "/items/" + id;
+		return baseDomain + DTO_CHECKLIST_BASE_PATH + "/" + checklistId;
 	}
 	
 	public static ItemDto fromEntity(Item item, String baseDomain) {
