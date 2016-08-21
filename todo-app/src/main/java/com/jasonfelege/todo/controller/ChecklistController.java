@@ -22,8 +22,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jasonfelege.todo.controller.dto.ChecklistDto;
+import com.jasonfelege.todo.controller.dto.ItemDto;
+import com.jasonfelege.todo.data.ItemRepository;
 import com.jasonfelege.todo.data.UserRepository;
 import com.jasonfelege.todo.data.domain.Checklist;
+import com.jasonfelege.todo.data.domain.Item;
 import com.jasonfelege.todo.data.domain.User;
 import com.jasonfelege.todo.exceptions.InvalidEntitlementException;
 import com.jasonfelege.todo.exceptions.JwtTokenValidationException;
@@ -38,10 +41,12 @@ public class ChecklistController {
 
 	private final ChecklistService listService;
 	private final UserRepository userRepository;
+	private final ItemRepository itemRepository;
 
-	public ChecklistController(ChecklistService listService, UserRepository userRepository) {
+	public ChecklistController(ChecklistService listService, ItemRepository itemRepository, UserRepository userRepository) {
 		this.listService = listService;
 		this.userRepository = userRepository;
+		this.itemRepository = itemRepository;
 	}
 
 	@Secured("ROLE_USER")
@@ -92,7 +97,20 @@ public class ChecklistController {
 		Checklist checklist = new Checklist();
 		checklist.setName(input.getName());
 		checklist.setOwner(owner);
+		
+
+		
+		List<Item> items = new ArrayList<Item>();
+		checklist.setItems(items);
+		
 		Checklist savedList = listService.save(checklist);
+		
+		Item item1 = new Item();
+		item1.setChecklist(savedList);
+		item1.setComplete(false);
+		item1.setName("item1-name");
+		
+		savedList = listService.save(checklist);
 
 		ChecklistDto dto = ChecklistDto.fromEntity(savedList, baseDomain);
 		return dto;
@@ -181,6 +199,86 @@ public class ChecklistController {
 		ChecklistDto dto = ChecklistDto.fromEntity(item, baseDomain);
 
 		return dto;
+	}
+	
+	
+	@Secured("ROLE_USER")
+	@RequestMapping(path = "/{id}/items", method = RequestMethod.GET)
+	public ChecklistItemIndex getChecklistItem(Authentication auth, @PathVariable long id)
+			throws JwtTokenValidationException, JsonProcessingException {
+
+		auth = validateAuthentication(auth);
+		
+		LOG.info("action=get_checklist_items auth={} id={} dto={}", auth, id);
+
+		JsonWebToken token = (JsonWebToken) auth.getPrincipal();
+		AuthenticationDetails authDetails = (AuthenticationDetails) auth.getDetails();
+		final String baseDomain = authDetails.getBaseDomain();
+
+		User user = validateUser(token.getUserId(), userRepository);
+
+		Checklist list = listService.findById(id).get();
+		
+		long userId = user.getId();
+		long ownerId = list.getOwner().getId();
+		
+		if (ownerId != userId) {
+			LOG.info("action=delete_checklist id={} owner_id={} user_id={}", id, ownerId, userId);
+			throw new InvalidEntitlementException("entity owned different user");
+		}
+		
+		List<ItemDto> dtos = new ArrayList<ItemDto>();
+		
+		itemRepository.findByChecklistId(id).forEach(item -> {
+			ItemDto dto = ItemDto.fromEntity(item, baseDomain);
+			dtos.add(dto);
+		});
+		
+		ChecklistItemIndex index = new ChecklistItemIndex();
+		index.items = dtos;
+		
+		return index;
+	}
+	
+	@Secured("ROLE_USER")
+	@RequestMapping(path = "/{id}/items", method = RequestMethod.POST)
+	public ItemDto createChecklistItem(Authentication auth, @PathVariable long id, @RequestBody ItemDto dto)
+			throws JwtTokenValidationException, JsonProcessingException {
+
+		auth = validateAuthentication(auth);
+		
+		LOG.info("action=create_checklist_item auth={} id={} dto={}", auth, id);
+
+		JsonWebToken token = (JsonWebToken) auth.getPrincipal();
+		AuthenticationDetails authDetails = (AuthenticationDetails) auth.getDetails();
+		final String baseDomain = authDetails.getBaseDomain();
+
+		User user = validateUser(token.getUserId(), userRepository);
+
+		Checklist list = listService.findById(id).get();
+		
+		long userId = user.getId();
+		long ownerId = list.getOwner().getId();
+		
+		if (ownerId != userId) {
+			LOG.info("action=delete_checklist id={} owner_id={} user_id={}", id, ownerId, userId);
+			throw new InvalidEntitlementException("entity owned different user");
+		}
+		
+		Item itemEntity = new Item();
+		itemEntity.setName(dto.getName());
+		itemEntity.setComplete(dto.isComplete());
+		itemEntity.setChecklist(list);
+		
+		Item savedItem = itemRepository.save(itemEntity);
+		
+		ItemDto resultDto = ItemDto.fromEntity(savedItem, baseDomain);
+		
+		return resultDto;
+	}
+	
+	class ChecklistItemIndex {
+		public List<ItemDto> items;
 	}
 	
 	class ChecklistIndex {

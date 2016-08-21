@@ -34,6 +34,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jasonfelege.todo.controller.dto.ChecklistDto;
+import com.jasonfelege.todo.controller.dto.ItemDto;
 import com.jasonfelege.todo.service.JsonWebTokenService;
 
 
@@ -276,4 +277,64 @@ public class IntegrationTest {
 	}
 	
 	
+	@Test
+	public void testCreateGetChecklistItemsWithAuthToken() throws Exception {
+		String jwt = jwtService.generateToken("activeuser", "2");
+
+		// create a checklist
+		MvcResult result = this.mockMvc.perform(
+				post("/api/checklists")
+				.content("{\"name\": \"test list\"}")
+				.header("Authorization", "bearer " + jwt)
+				.contentType(MediaType.APPLICATION_JSON)
+				.accept(MediaType.APPLICATION_JSON)) 
+		.andExpect(status().is(HttpStatus.OK.value()))
+		.andExpect(jsonPath("$.id").isNumber())
+		.andExpect(jsonPath("$.name").isNotEmpty())
+		.andExpect(jsonPath("$.self_href").isNotEmpty())
+		.andReturn();
+		
+		ObjectMapper mapper = new ObjectMapper();
+		ChecklistDto dto = mapper.readValue(result.getResponse().getContentAsString(), ChecklistDto.class);
+		
+		
+		String itemsUri = "/api/checklists/" + dto.getId() + "/items";
+		LOG.info("action=testCreateGetChecklistItemsWithAuthToken new_id={} uri={}", dto.getId(), itemsUri);
+		
+
+		// create a item
+		MvcResult itemResult = this.mockMvc.perform(
+				post(itemsUri)
+				.content("{\"name\": \"test list\", \"complete\": \"false\"}")
+				.header("Authorization", "bearer " + jwt)
+				.contentType(MediaType.APPLICATION_JSON)
+				.accept(MediaType.APPLICATION_JSON)) 
+		.andExpect(status().is(HttpStatus.OK.value()))
+		.andExpect(jsonPath("$.id").isNumber())
+		.andExpect(jsonPath("$.name").isNotEmpty())
+		.andExpect(jsonPath("$.complete").isBoolean())
+		.andExpect(jsonPath("$.checklist_href").isNotEmpty())
+		.andExpect(jsonPath("$.self_href").isNotEmpty())
+		.andReturn();
+		
+		ItemDto itemDto = mapper.readValue(itemResult.getResponse().getContentAsString(), ItemDto.class);
+		
+		String itemUri = "/api/checklists/" + dto.getId() + "/items/" + itemDto.getId();
+		
+		// check if the item exists
+		this.mockMvc.perform(
+				get(itemUri)
+				.header("Authorization", "bearer " + jwt)
+				.accept(MediaType.APPLICATION_JSON)) 
+		.andExpect(status().is(HttpStatus.OK.value()))
+		.andExpect(status().is(HttpStatus.OK.value()))
+		.andExpect(jsonPath("$.id").isNumber())
+		.andExpect(jsonPath("$.id", is(itemDto.getId())))
+		.andExpect(jsonPath("$.name").isNotEmpty())
+		.andExpect(jsonPath("$.name", is(itemDto.getName())))
+		.andExpect(jsonPath("$.complete").isBoolean())
+		.andExpect(jsonPath("$.checklist_href").isNotEmpty())
+		.andExpect(jsonPath("$.self_href").isNotEmpty())
+		.andDo(document("checklist-getitem-successful"));
+	}
 }
