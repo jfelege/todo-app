@@ -2,6 +2,7 @@ package com.jasonfelege.todo.configuration;
 
 import java.io.IOException;
 
+import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.jasonfelege.todo.exceptions.InvalidEntitlementException;
 import com.jasonfelege.todo.exceptions.JwtTokenValidationException;
 import com.jasonfelege.todo.exceptions.NonExposingException;
 import com.jasonfelege.todo.exceptions.UserNotFoundException;
@@ -27,7 +29,31 @@ public class GlobalControllerAdvice {
 	public GlobalControllerAdvice(@Value("${app.disableStackTrace}") Boolean hideStackTrace) {
 		this.disableStackTrace = hideStackTrace;
 	}
+	
+	@ExceptionHandler(InvalidEntitlementException.class)
+	@ResponseBody
+	public ResponseEntity<?> handleInvalidEntitlementException(HttpServletRequest req, Exception e) {
+		LOGGER.error(e.getMessage(), e);
 
+		if (disableStackTrace) {
+			e = (Exception) new NonExposingException("unauthorized");
+		}
+
+		return new ResponseEntity<>(e, HttpStatus.UNAUTHORIZED);
+	}
+
+	@ExceptionHandler(EntityNotFoundException.class)
+	@ResponseBody
+	public ResponseEntity<?> handleEntityNotFoundException(HttpServletRequest req, Exception e) {
+		LOGGER.error(e.getMessage(), e);
+
+		if (disableStackTrace) {
+			e = (Exception) new NonExposingException("not found");
+		}
+
+		return new ResponseEntity<>(e, HttpStatus.NOT_FOUND);
+	}
+	
 	@ExceptionHandler(UserNotFoundException.class)
 	@ResponseBody
 	public ResponseEntity<?> handleUserNotFoundException(HttpServletRequest req, Exception e) {
