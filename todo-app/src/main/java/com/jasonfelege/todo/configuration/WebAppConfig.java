@@ -2,8 +2,6 @@ package com.jasonfelege.todo.configuration;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -53,7 +51,6 @@ public class WebAppConfig extends WebSecurityConfigurerAdapter {
 	@Value("${jwt.expiration:300}")
 	private long jwtExpiration;
 
-	
 	@Bean
 	@Scope("prototype")
 	public LogEvent logEvent(String eventName) {
