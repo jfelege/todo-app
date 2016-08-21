@@ -22,8 +22,8 @@ echo "UPLOAD nginx config"
 scp -oStrictHostKeyChecking=no -i ${TRAVIS_BUILD_DIR}/travis-scripts/id_rsa -r root@${DO_HOST}:/host_docker-nginx ${TRAVIS_BUILD_DIR}/todo-vagrant/docker-nginx/
 
 echo "UPLOAD asciidoc"
-scp -oStrictHostKeyChecking=no -i ${TRAVIS_BUILD_DIR}/travis-scripts/id_rsa -r root@${DO_HOST}:/host_todo-app/build/asciidoc ${TRAVIS_BUILD_DIR}/todo-app/build/
+scp -oStrictHostKeyChecking=no -i ${TRAVIS_BUILD_DIR}/travis-scripts/id_rsa -r root@${DO_HOST}:/host_todo-app/build ${TRAVIS_BUILD_DIR}/todo-app/build/asciidoc/
 
 echo "UPLOAD libs"
-scp -oStrictHostKeyChecking=no -i ${TRAVIS_BUILD_DIR}/travis-scripts/id_rsa -r root@${DO_HOST}:/host_todo-app/build/libs ${TRAVIS_BUILD_DIR}/todo-app/build/
+scp -oStrictHostKeyChecking=no -i ${TRAVIS_BUILD_DIR}/travis-scripts/id_rsa -r root@${DO_HOST}:/host_todo-app/build ${TRAVIS_BUILD_DIR}/todo-app/build/libs/
 
