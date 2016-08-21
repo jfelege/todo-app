@@ -14,8 +14,28 @@ The following software packages are required:
 
 1. clone this git repo locally
 2. navigate to `./todo-vagrant`
-3. run `vagrant up` (this step may take a few minutes)
-4. point browser to [http://localhost:8080/api/auth/token?username=jdoe&password=password](http://localhost:8080/api/auth/token?username=jdoe&password=password) to fetch a `ROLE_USER` jwt token.
-5. point browser to [http://localhost:8080/api/auth/token?username=jfelege&password=password](http://localhost:8080/api/auth/token?username=jfelege&password=password) to fetch a `ROLE_USER`, `ROLE_ADMIN` jwt token.
-6. point browser to [http://localhost:8080/api/hello/?token=**TOKEN**](http://localhost:8080/api/hello/?token=**TOKEN**) to access normal user end point.
-7. point browser to [http://localhost:8080/api/hello/admin/?token=**TOKEN**](http://localhost:8080/api/hello/admin/?token=**TOKEN**) to access normal admin end point.
+3. run `vagrant up` 
+4. point browser to [http://localhost:6080](http://localhost:6080) for api documentation (this may take a few minutes)
+
+### vagrant
+The included vagrant environment includes the installation of docker-engine configured to run a instance of nginx (web server) acting as a reverse proxy to the spring boot api application.
+
+When the vagrant image is provisioned, the java application is re-built which may take a minute or two before coming online. 
+
+Spring Boot will use the `production` profile while running in vagrant.
+
+### demo accounts
+
+* admin:password
+* activeuser:password
+* activeuser2:password
+
+## other notes
+* application dependencies:
+    * spring boot
+    * spring-data-jpa, hsql in-memory database
+    * spring-security
+    * spring-security-test	
+    * spring-rest-docs
+    * jBCrypt (for encrypting account passwords)
+    * java-jwt (for token management)

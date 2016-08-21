@@ -1,0 +1,150 @@
+= todo-app API Guide
+;
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 4
+:sectlinks:
+
+[[overview]]
+= Overview
+
+[[overview-http-verbs]]
+== HTTP verbs
+
+RESTful notes tries to adhere as closely as possible to standard HTTP and REST conventions in its
+use of HTTP verbs.
+
+|===
+| Verb | Usage
+
+| `GET`
+| Used for retrieving resources.
+
+| `POST`
+| Used for creating resources.
+
+| `PATCH`
+| Used for replacing resources or collections.
+
+| `DELETE`
+| Used for deleting resources.
+|===
+
+[[overview-http-status-codes]]
+== HTTP status codes
+
+RESTful notes tries to adhere as closely as possible to standard HTTP and REST conventions in its
+use of HTTP status codes.
+
+[[authorization]]
+= Authorization
+
+[[authorization-introduction]]
+== Introduction
+
+To utilize the todo-app REST API you must provide a user credential while providing the Authorization header with "bearer <<token>>" as the value.
+
+include::{snippets}/token-successful/http-request.adoc[]
+
+include::{snippets}/token-successful/http-response.adoc[]
+
+[[checklists]]
+= Checklists
+
+The following are the API calls to create and manage your checklists.
+
+[[checklists-list]]
+== List
+
+include::{snippets}/checklist-list-successful/http-request.adoc[]
+
+include::{snippets}/checklist-list-successful/http-response.adoc[]
+
+include::{snippets}/checklist-list-successful/response-fields.adoc[]
+
+
+[[checklists-create]]
+== Create
+
+include::{snippets}/checklist-create-successful/http-request.adoc[]
+
+include::{snippets}/checklist-create-successful/http-response.adoc[]
+
+include::{snippets}/checklist-create-successful/response-fields.adoc[]
+
+[[checklists-fetch]]
+== View
+
+include::{snippets}/checklist-get-checklist-successful/http-request.adoc[]
+
+include::{snippets}/checklist-get-checklist-successful/http-response.adoc[]
+
+include::{snippets}/checklist-get-checklist-successful/response-fields.adoc[]
+
+[[checklists-update]]
+== Update
+
+include::{snippets}/checklist-patch-successful/http-request.adoc[]
+
+include::{snippets}/checklist-patch-successful/http-response.adoc[]
+
+include::{snippets}/checklist-patch-successful/response-fields.adoc[]
+
+[[checklists-delete]]
+== Delete
+
+include::{snippets}/checklist-delete-successful/http-request.adoc[]
+
+include::{snippets}/checklist-delete-successful/http-response.adoc[]
+
+include::{snippets}/checklist-delete-successful/response-fields.adoc[]
+
+[[checklists-fetch-item]]
+== Item Detail
+
+include::{snippets}/checklist-getitem-successful/http-request.adoc[]
+
+include::{snippets}/checklist-getitem-successful/http-response.adoc[]
+
+[[items]]
+= Items
+
+The following are the API calls to create and manage your items.
+
+[[items-create]]
+== Create
+
+include::{snippets}/checklist-createitem-successful/http-request.adoc[]
+
+include::{snippets}/checklist-createitem-successful/http-response.adoc[]
+
+include::{snippets}/checklist-createitem-successful/response-fields.adoc[]
+
+[[items-fetch]]
+== View
+
+include::{snippets}/item-fetch-successful/http-request.adoc[]
+
+include::{snippets}/item-fetch-successful/http-response.adoc[]
+
+include::{snippets}/item-fetch-successful/response-fields.adoc[]
+
+[[items-update]]
+== Update
+
+include::{snippets}/item-update-successful/http-request.adoc[]
+
+include::{snippets}/item-update-successful/http-response.adoc[]
+
+include::{snippets}/item-update-successful/response-fields.adoc[]
+
+[[items-delete]]
+== Delete
+
+include::{snippets}/item-delete-successful/http-request.adoc[]
+
+include::{snippets}/item-delete-successful/http-response.adoc[]
+
+include::{snippets}/item-delete-successful/response-fields.adoc[]

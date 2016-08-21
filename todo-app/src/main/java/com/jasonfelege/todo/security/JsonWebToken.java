@@ -1,4 +1,4 @@
-package com.jasonfelege.todo.security.credentials;
+package com.jasonfelege.todo.security;
 
 public class JsonWebToken {
 	private String userName;

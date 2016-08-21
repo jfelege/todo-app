@@ -1,4 +1,4 @@
-package com.jasonfelege.todo.security.data;
+package com.jasonfelege.todo.data.domain;
 
 import java.io.Serializable;
 import java.util.HashSet;

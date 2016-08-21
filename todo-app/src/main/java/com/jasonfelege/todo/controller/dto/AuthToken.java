@@ -1,4 +1,4 @@
-package com.jasonfelege.todo.controller.domain;
+package com.jasonfelege.todo.controller.dto;
 
 public class AuthToken {
 	private String type = "bearer";

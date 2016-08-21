@@ -8,11 +8,16 @@ buildscript {
     }
 }
 
+plugins {
+	id "org.asciidoctor.convert" version "1.5.3"
+}
+
 apply plugin: "io.spring.dependency-management"
 
 apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'spring-boot'
+apply plugin: 'findbugs'
 
 jar {
     baseName = 'todo-app'
@@ -26,6 +31,11 @@ repositories {
     }
 }
 
+ext {
+	snippetsDir = file('build/generated-snippets')
+}
+
+
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
@@ -35,15 +45,42 @@ dependencies {
    	compile("org.springframework.boot:spring-boot-starter-data-jpa")
    	compile("org.springframework.boot:spring-boot-starter-security")
    	
+   	
    	compile("com.auth0:java-jwt:2.2.0")
 	compile("de.svenkubiak:jBCrypt:0.4.1")
 
 	runtime("org.hsqldb:hsqldb:2.3.4")
 	
     testCompile('org.springframework.boot:spring-boot-starter-test')
+    testCompile('org.springframework.security:spring-security-test')
+    testCompile("org.springframework.restdocs:spring-restdocs-mockmvc:1.1.1.RELEASE")
     testCompile('com.jayway.jsonpath:json-path')
-    testCompile('javax.inject:javax.inject')
+    testCompile('javax.inject:javax.inject:1')
     
+}
+
+asciidoctor {
+	attributes 'snippets': snippetsDir
+	inputs.dir snippetsDir
+	outputDir "build/asciidoc"
+	dependsOn test
+	sourceDir 'src/main/asciidoc'
+}
+
+findbugs {
+    toolVersion = "3.0.1"
+    sourceSets = [sourceSets.main]
+    ignoreFailures = true
+    reportsDir = file("$project.buildDir/findbugsReports")
+    effort = "max"
+    reportLevel = "high"
+}
+
+jar {
+	dependsOn asciidoctor
+	from ("${asciidoctor.outputDir}/html5") {
+		into 'static/docs'
+	}
 }
 
 task wrapper(type: Wrapper) {

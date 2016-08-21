@@ -1,5 +1,7 @@
 package com.jasonfelege.todo.controller;
 
+import static com.jasonfelege.todo.controller.ControllerUtil.validateAuthentication;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.annotation.Secured;
@@ -11,36 +13,38 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/hello")
 public class HelloController {
 	private static final Logger LOG = LoggerFactory.getLogger(HelloController.class);
-	
+
 	@RequestMapping("/")
 	@Secured("ROLE_USER")
 	public String helloWorld(Authentication auth, String token) {
-		LOG.info("action=helloWorld authentication={} token={}", auth, token);
+		auth = validateAuthentication(auth);
 		
+		LOG.info("action=helloWorld authentication={} token={}", auth, auth.getCredentials());
+
 		String out = "hello ";
-		
+
 		if (auth != null) {
 			out += auth.getName();
 		}
-		
-		out += " "  + token;
-		
+
+		out += " " + token;
+
 		return out;
 	}
-	
+
 	@RequestMapping("/admin")
 	@Secured("ROLE_ADMIN")
 	public String helloAdmin(Authentication auth, String token) {
 		LOG.info("action=helloAdmin authentication={} token={}", auth, token);
-		
+
 		String out = "admin ";
-		
+
 		if (auth != null) {
 			out += auth.getName();
 		}
-		
-		out += " "  + token;
-		
+
+		out += " " + token;
+
 		return out;
 	}
 }

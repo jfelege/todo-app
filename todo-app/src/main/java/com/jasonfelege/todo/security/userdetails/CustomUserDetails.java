@@ -6,7 +6,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.jasonfelege.todo.security.data.User;
+import com.jasonfelege.todo.data.domain.User;
 
 public class CustomUserDetails extends User implements UserDetails {
 

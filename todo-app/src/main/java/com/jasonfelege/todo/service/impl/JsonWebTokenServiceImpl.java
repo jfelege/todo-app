@@ -1,4 +1,4 @@
-package com.jasonfelege.todo.service;
+package com.jasonfelege.todo.service.impl;
 
 import java.io.IOException;
 import java.security.InvalidKeyException;
@@ -11,6 +11,8 @@ import com.auth0.jwt.JWTSigner;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.JWTVerifyException;
 import com.auth0.jwt.internal.org.apache.commons.lang3.StringUtils;
+import com.jasonfelege.todo.exceptions.JwtTokenValidationException;
+import com.jasonfelege.todo.service.JsonWebTokenService;
 
 public class JsonWebTokenServiceImpl implements JsonWebTokenService {
 	private final JWTVerifier verifier;

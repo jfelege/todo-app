@@ -1,6 +1,5 @@
 package com.jasonfelege.todo.data.domain;
 
-import java.io.Serializable;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -12,31 +11,30 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
-import javax.validation.constraints.NotNull;
+import javax.persistence.Version;
 
-import com.jasonfelege.todo.security.data.User;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
-public class Checklist implements Serializable {
-
-	private static final long serialVersionUID = 1L;
+public class Checklist {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;
 	
-	@NotNull
 	private String name;
 
-	
-	@OneToOne(fetch = FetchType.EAGER)
+	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name="user_id", referencedColumnName="id", nullable=false)
 	private User owner;
 	
-	@OneToMany(cascade=CascadeType.ALL, fetch = FetchType.EAGER)
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	@JoinColumn(name="item_id")
 	private List<Item> items;
 
+	@Version
+    private long version;
+	
 	public long getId() {
 		return id;
 	}
@@ -53,15 +51,7 @@ public class Checklist implements Serializable {
 		this.name = name;
 	}
 
-	public List<Item> getItems() {
-		return items;
-	}
-
-	public void setItems(List<Item> items) {
-		this.items = items;
-	}
-
-
+	@JsonIgnore
 	public User getOwner() {
 		return owner;
 	}
@@ -70,11 +60,20 @@ public class Checklist implements Serializable {
 		this.owner = owner;
 	}
 
-	@Override
-	public String toString() {
-		return "Checklist [id=" + id + ", name=" + name + ", items=" + items + ", owner=" + owner + ", collaborators="
-				+ "]";
+	public List<Item> getItems() {
+		return items;
 	}
-	
-	
+
+	public void setItems(List<Item> items) {
+		this.items = items;
+	}
+
+	public long getVersion() {
+		return version;
+	}
+
+	public void setVersion(long version) {
+		this.version = version;
+	}	
+
 }

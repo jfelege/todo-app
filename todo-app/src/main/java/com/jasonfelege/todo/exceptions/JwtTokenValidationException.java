@@ -1,4 +1,4 @@
-package com.jasonfelege.todo.service;
+package com.jasonfelege.todo.exceptions;
 
 public class JwtTokenValidationException extends Exception {
 
