@@ -6,7 +6,7 @@ import com.jasonfelege.todo.data.domain.Checklist;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ChecklistDto {
-	private static final String DTO_BASE_PATH = "/api/checklist";
+	private static final String DTO_BASE_PATH = "/api/checklists";
 	
 	private long id;
 	private String name;
