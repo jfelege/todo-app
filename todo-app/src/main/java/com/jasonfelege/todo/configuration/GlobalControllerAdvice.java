@@ -1,6 +1,7 @@
 package com.jasonfelege.todo.configuration;
 
 import java.io.IOException;
+import java.util.NoSuchElementException;
 
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
@@ -77,6 +78,12 @@ public class GlobalControllerAdvice {
 	@ResponseBody
 	public ResponseEntity<?> handleMissingServletRequestParameterException(HttpServletRequest req, Exception e) {
 		return handleException(e, "missing request parameter", HttpStatus.BAD_REQUEST);
+	}
+	
+	@ExceptionHandler(NoSuchElementException.class)
+	@ResponseBody
+	public ResponseEntity<?> handleNoSuchElementException(HttpServletRequest req, Exception e) {
+		return handleException(e, "not found", HttpStatus.NOT_FOUND);
 	}
 
 	@ExceptionHandler
