@@ -14,5 +14,5 @@ sudo apt-get update
 sudo apt-get install openjdk-8-jdk
 
 # run default docker containers
-sudo docker run --restart=always -p 80:80 --name nginx --volume /host_docker-nginx/nginx.conf:/etc/nginx/nginx.conf:ro  --volume /host_todo-app/build/asciidoc/html5:/etc/nginx/app/apidocs -d nginx
+sudo docker run  --net="host" --restart=always -p 80:80 --name nginx --volume /host_docker-nginx/nginx.conf:/etc/nginx/nginx.conf:ro  --volume /host_todo-app/build/asciidoc/html5:/etc/nginx/app/apidocs -d nginx
 sudo docker run  --restart=always -p 9411:9411 --name zipkin -d openzipkin/zipkin
