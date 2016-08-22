@@ -19,7 +19,8 @@ echo "UPLOAD libs"
 scp -oStrictHostKeyChecking=no -i ${TRAVIS_BUILD_DIR}/travis-scripts/id_rsa -r ${TRAVIS_BUILD_DIR}/todo-app/build/libs root@${DO_HOST}:/host_todo-app/build
 
 echo "KILL springboot process"
-ssh -oStrictHostKeyChecking=no -i ${TRAVIS_BUILD_DIR}/travis-scripts/id_rsa root@${DO_HOST} 'pkill app.pid.name=todoapp'
+ssh -oStrictHostKeyChecking=no -i ${TRAVIS_BUILD_DIR}/travis-scripts/id_rsa root@${DO_HOST} 'pkill -f app.pid.name=todoapp'
 
 echo "START springboot process"
 ssh -oStrictHostKeyChecking=no -i ${TRAVIS_BUILD_DIR}/travis-scripts/id_rsa root@${DO_HOST} 'nohup java -Dapp.pid.name=todoapp -Dspring.profiles.active=production -jar /host_todo-app/build/libs/*.jar 0<&- &>/dev/null &'
+
