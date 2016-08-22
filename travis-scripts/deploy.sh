@@ -22,5 +22,5 @@ echo "KILL springboot process"
 ssh -oStrictHostKeyChecking=no -i ${TRAVIS_BUILD_DIR}/travis-scripts/id_rsa root@${DO_HOST} 'pkill -f app.pid.name=todoapp'
 
 echo "START springboot process"
-ssh -oStrictHostKeyChecking=no -i ${TRAVIS_BUILD_DIR}/travis-scripts/id_rsa root@${DO_HOST} 'nohup java -Dapp.pid.name=todoapp -Dspring.profiles.active=production -jar /host_todo-app/build/libs/*.jar 0<&- &>/dev/null &'
+ssh -oStrictHostKeyChecking=no -i ${TRAVIS_BUILD_DIR}/travis-scripts/id_rsa root@${DO_HOST} 'nohup java -Dapp.pid.name=todoapp -Djava.security.egd=file:/dev/./urandom -Dspring.profiles.active=production -jar /host_todo-app/build/libs/*.jar 0<&- &>/dev/null &'
 
