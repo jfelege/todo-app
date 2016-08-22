@@ -4,7 +4,7 @@ buildscript {
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:1.4.0.RELEASE")
-        classpath "io.spring.gradle:dependency-management-plugin:0.5.2.RELEASE"
+        classpath "io.spring.gradle:dependency-management-plugin:0.6.0.RELEASE"
     }
 }
 
@@ -19,18 +19,12 @@ apply plugin: 'eclipse'
 apply plugin: 'spring-boot'
 apply plugin: 'findbugs'
 
-ext {
-	springVersion='4.3.2.RELEASE'
-	springBootVersion='1.4.0.RELEASE'
-}
-
 jar {
     baseName = 'todo-app'
     version =  '0.1.0'
 }
 
 repositories {
-	jcenter()
     mavenCentral()
     maven {
         url 'https://repo.spring.io/libs-snapshot'
@@ -46,21 +40,21 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 dependencies {
-	compile("org.springframework.boot:spring-boot-devtools:1.4.0.RELEASE")
-    compile("org.springframework.boot:spring-boot-starter-web:1.4.0.RELEASE")
-   	compile("org.springframework.boot:spring-boot-starter-data-jpa:1.4.0.RELEASE")
-   	compile("org.springframework.boot:spring-boot-starter-security:1.4.0.RELEASE")
-   	compile("org.springframework.cloud:spring-cloud-starter-zipkin:1.0.4.RELEASE")
+	compile("org.springframework.boot:spring-boot-devtools")
+    compile("org.springframework.boot:spring-boot-starter-web")
+   	compile("org.springframework.boot:spring-boot-starter-data-jpa")
+   	compile("org.springframework.boot:spring-boot-starter-security")
+   	compile("org.springframework.cloud:spring-cloud-starter-zipkin:1.0.5.RELEASE")
    	
    	compile("com.auth0:java-jwt:2.2.0")
 	compile("de.svenkubiak:jBCrypt:0.4.1")
 
-	runtime("org.hsqldb:hsqldb:2.3.4")
+	compile("org.hsqldb:hsqldb:2.3.4")
 	
-    testCompile('org.springframework.boot:spring-boot-starter-test:1.4.0.RELEASE')
-    testCompile('org.springframework.security:spring-security-test:4.1.2.RELEASE')
+    testCompile('org.springframework.boot:spring-boot-starter-test')
+    testCompile('org.springframework.security:spring-security-test')
     testCompile("org.springframework.restdocs:spring-restdocs-mockmvc:1.1.1.RELEASE")
-    testCompile('com.jayway.jsonpath:json-path:2.2.0')
+    testCompile('com.jayway.jsonpath:json-path')
     testCompile('javax.inject:javax.inject:1')
     
 }
