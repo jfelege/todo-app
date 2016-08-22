@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 
 echo "update vmhost with latest packages"
 sudo yum update -y
@@ -27,5 +27,4 @@ sudo docker run hello-world
 sudo chkconfig docker on
 
 sudo docker run --net="host" --restart=always -p 80:80 --name nginx --volume /host_docker-nginx/nginx.conf:/etc/nginx/nginx.conf:ro  --volume /host_todo-app/build/asciidoc/html5:/etc/nginx/app/apidocs -d nginx
-
 # sudo docker run -it nginx /bin/bash

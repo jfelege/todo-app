@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 
 echo "start up script"
 
@@ -12,4 +12,4 @@ cd /host_todo-app
 ./gradlew assemble
 
 # execute the application
-nohup java -Dspring.profiles.active=production -jar ./build/libs/*.jar 0<&- &>/dev/null &
+nohup java -Dapp.pid.name=todoapp -Dspring.profiles.active=production -jar ./build/libs/*.jar 0<&- &>/dev/null &
