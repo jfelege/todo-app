@@ -20,7 +20,14 @@ The following software packages are required:
 2. navigate to `./todo-vagrant`
 3. run `vagrant up` 
 4. point browser to [http://localhost:6080](http://localhost:6080) for api documentation (this may take a few minutes)
-5. point browser to [http://localhost:9411/](http://localhost:9411/) for OpenZipkin UI.
+5. point browser to [http://localhost:9411/](http://localhost:9411/) for OpenZipkin UI
+
+### live demo
+A live demo of this project is configured to run at the following url:
+
+4. point browser to [http://159.203.96.110](http://159.203.96.110) for api documentation (this may take a few minutes)
+5. point browser to [http://159.203.96.110:9411/](http://159.203.96.110:9411/) for OpenZipkin UI
+
 
 ### vagrant
 The included vagrant environment includes the installation of docker-engine configured to run a instance of nginx (web server) acting as a reverse proxy to the spring boot api application.
