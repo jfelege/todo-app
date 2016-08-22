@@ -1,6 +1,5 @@
 define(function(require) {
-    var request = require("../lib/request");
-
+    var reqwest = require("../lib/reqwest");
 
 	  var returnedModule = function () {
 		
@@ -12,14 +11,18 @@ define(function(require) {
 
 			var url = 'http://159.203.96.110/api/auth/token';
 
-			console.log(url);
-			console.log(request);
+			reqwest({url:
+				url, 
+				crossOrigin: true,
+				error: function (err) { 
+					console.log(err);
+				},
+			  	success: function (resp) {
+			      console.log(resp);
+			    }
+    		});
 
-			request(url, function (error, response, body) {
-			  if (!error && response.statusCode == 200) {
-			    console.log(body) // Show the HTML for the Google homepage.
-			  }
-			});
+
 			
 		};
 	};
