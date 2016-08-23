@@ -8,6 +8,6 @@ requirejs.config({
 require(['app/ApiClient'], function(ApiClient){
 	var api = new ApiClient();
 	
-	api.init({user: 'admin', password: 'password'});
+	api.init({baseDomain: 'http://localhost:6080', username: 'admin', password: 'password'});
 	
 });

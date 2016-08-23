@@ -3,17 +3,21 @@ define(function(require) {
 
 	  var returnedModule = function () {
 		
-		this.init = function(config) {
-			var config = config || {};
+		this.init = function(cfg) {
+			var config = cfg || {};
 
 			var username = config.username;
 			var password = config.password;
+			var baseDomain = config.baseDomain;
 
-			var url = 'http://159.203.96.110/api/auth/token';
+			var url = baseDomain + '/api/auth/token?username=' + username + '&password=' + password;
 
 			reqwest({url:
-				url, 
+				url,
+				method: 'POST',
+				type: 'json',
 				crossOrigin: true,
+				contentType: 'application/json',
 				error: function (err) { 
 					console.log(err);
 				},
