@@ -6,6 +6,8 @@ import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.docu
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
+import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -77,6 +79,10 @@ public class IntegrationTest {
 		.andExpect(jsonPath("$.type", is("bearer")))
 		.andExpect(jsonPath("$.token").isNotEmpty())
 		.andDo(document("token-successful",
+				requestParameters( 
+						parameterWithName("username").description("username of the account requesting authentication"), 
+						parameterWithName("password").description("password for the account")
+				),
 				responseFields(
 						fieldWithPath("type").description("type of token being returned"),
 						fieldWithPath("token").description("actual token string to be used in subsequent calls")

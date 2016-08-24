@@ -46,6 +46,8 @@ use of HTTP status codes.
 
 To utilize the todo-app REST API you must provide a user credential while providing the Authorization header with "bearer <<token>>" as the value.
 
+include::{snippets}/token-successful/request-parameters.adoc[]
+
 include::{snippets}/token-successful/http-request.adoc[]
 
 include::{snippets}/token-successful/http-response.adoc[]
